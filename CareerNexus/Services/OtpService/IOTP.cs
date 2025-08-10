@@ -1,0 +1,13 @@
+﻿using CareerNexus.Models.UserModel;
+using CareerNexus.Services.Authenticate;
+
+namespace CareerNexus.Services.OtpService
+{
+    public interface IOTP
+    {
+        string BuildToken(long id, string fullName);
+        Task<ClaimResponseModel> GenerateToken(UserModel user);
+         //Task<ClaimResponseModel> GenerateToken(UserModel user);
+        //public string GenerateToken(string userId, string userName, IConfiguration config);
+    }
+}

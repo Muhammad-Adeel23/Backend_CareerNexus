@@ -1,0 +1,6 @@
+@CareerNexus_HostAddress = http://localhost:5043
+
+GET {{CareerNexus_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

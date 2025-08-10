@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareerNexus", "CareerNexus\CareerNexus.csproj", "{443AF00E-9F65-4DBC-99D0-7D0EA2CB38CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{443AF00E-9F65-4DBC-99D0-7D0EA2CB38CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{443AF00E-9F65-4DBC-99D0-7D0EA2CB38CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{443AF00E-9F65-4DBC-99D0-7D0EA2CB38CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{443AF00E-9F65-4DBC-99D0-7D0EA2CB38CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A748B9C-08D9-4BCF-80E0-DF766E1094D1}
+	EndGlobalSection
+EndGlobal
