@@ -1,10 +1,10 @@
 ﻿using CareerNexus.Models.UserModel;
-using CareerNexus.Services.Authenticate;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using CareerNexus.AppConfiguration;
+using CareerNexus.Models.Authetication;
 
 namespace CareerNexus.Services.OtpService
 {
@@ -56,7 +56,7 @@ namespace CareerNexus.Services.OtpService
             {
                 Email = user.Email,
                 FullName = user.Fullname,
-                IsTwoFactorEnabled = user.IsTwoFactorEnabled,
+                //IsTwoFactorEnabled = user.IsTwoFactorEnabled,
                 //ProfilePictureURL = user.ProfilePictureURL, // if null, it's okay
                 //RoleName = user.RoleName
             };

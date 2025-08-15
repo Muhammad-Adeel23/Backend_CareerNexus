@@ -1,4 +1,4 @@
-﻿namespace CareerNexus.Services.Authenticate
+﻿namespace CareerNexus.Models.Authetication
 {
     public class ClaimResponseModel
     {
