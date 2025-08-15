@@ -1,5 +1,5 @@
-﻿using CareerNexus.Models.UserModel;
-using CareerNexus.Services.Authenticate;
+﻿using CareerNexus.Models.Authetication;
+using CareerNexus.Models.UserModel;
 
 namespace CareerNexus.Services.OtpService
 {

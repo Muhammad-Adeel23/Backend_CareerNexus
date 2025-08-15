@@ -28,24 +28,33 @@ namespace CareerNexus.Controllers
             _config = config;
         }
 
-        [HttpPost]
-        public IActionResult signup(UserModel user)
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(AuthenticationRequestModel), 200)]
+        [HttpPost("Register")]
+        public async Task <IActionResult> Register(UserModel user)
         {
-            var result = _authenticationservice.Signup(user);
-            if (result != null)
+            long result = await _authenticationservice.Register(user);
+            string msg = string.Empty;
+            bool isSuccess = false;
+            if (result > 0)
             {
-                return Ok(new
-                {
-                    message = "Signup successful",
-                    user = new
-                    {
-                        username = result.Username,
-                        email = result.Email,
-                        fullname = result.Fullname
-                    }
-                });
+                msg = "User Create Successfully";
+                isSuccess = true;
             }
-            return BadRequest(new { message = "Signup failed" });
+            else
+            {
+                msg = "Email already Exist";
+                isSuccess = false;
+            }
+                return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                {
+                    StatusCode=(int)HttpStatusCode.OK,
+                    Data = result,
+                    Message = msg,
+                    IsSuccess = true
+                });
+            
+           
         }
         [AllowAnonymous]
         [ProducesResponseType(typeof(AuthenticationRequestModel), 200)]

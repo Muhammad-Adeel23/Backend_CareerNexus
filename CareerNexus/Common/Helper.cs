@@ -5,6 +5,16 @@ namespace CareerNexus.Common
 {
     public static class Helper
     {
+        public static string DecryptString(string encryted_data)
+        {
+            var decryptor = new Encrypt_BT();
+            return decryptor.DecryptString(encryted_data);
+        }
+        public static string EncryptString(string encryted_data)
+        {
+            var decryptor = new Encrypt_BT();
+            return decryptor.EncryptString(encryted_data);
+        }
         public static List<T> ToModelList<T>(this DataTable table) where T : new()
         {
             var properties = typeof(T).GetProperties().Where(p => p.CanWrite).ToList();

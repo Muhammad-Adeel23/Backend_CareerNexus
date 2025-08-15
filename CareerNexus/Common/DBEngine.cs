@@ -8,7 +8,7 @@ namespace CareerNexus.Common
     public static class DBEngine 
     {
         private static int result = 0;
-        private static readonly string connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=CareerNexus;Trusted_Connection=True;";
+        private static readonly string connectionString = "Server=localhost\\SQLEXPRESS;Database=CareerNexus;User Id=Adeel123;Password=test123;TrustServerCertificate=True;";
         private static readonly Serilog.ILogger _logger = Log.ForContext(typeof(DBEngine));
 
 
@@ -156,26 +156,67 @@ namespace CareerNexus.Common
         #endregion
 
         #region ExecuteScalar
-        public static object ExecuteScalar(SqlCommand cmd, string? query = null)
+        public static long ExecuteScalar(SqlCommand cmd, Databaseoperations? databaseOperation = null, string? query = null, bool? logFlagOnAndOff = null)
         {
-            using SqlConnection conn = new SqlConnection(connectionString);
+            SqlConnection conn = new SqlConnection(connectionString);
             try
             {
-                conn.Open();
+                long value = 0;
+                if (conn.State == ConnectionState.Closed)
+                    conn.Open();
+
                 cmd.Connection = conn;
                 cmd.CommandTimeout = int.MaxValue;
 
-                Stopwatch timer = Stopwatch.StartNew();
-                var result = cmd.ExecuteScalar();
-                timer.Stop();
+                var operation = GetOperationName(databaseOperation);
 
-                LogQuery("ExecuteScalar", query, timer.Elapsed);
-                return result!;
+                if (!databaseOperation.HasValue)
+                {
+                    operation = "SQL Query";
+                }
+
+                if (!string.IsNullOrWhiteSpace(query) || databaseOperation.HasValue)
+                {
+                    var timer = new Stopwatch();
+                    timer.Start();
+
+                    var firstColumn = cmd.ExecuteScalar();
+
+                    timer.Stop();
+                    TimeSpan timeTaken = timer.Elapsed;
+                    var timeDiff = timeTaken.ToString(@"m\:ss\.fff");
+
+                    LogDBActionWithTime(operation, timeDiff, query);
+
+                    if (firstColumn != null)
+                    {
+                        value = Convert.ToInt64(firstColumn);
+                    }
+                }
+
+                else
+                {
+                    var firstColumn = cmd.ExecuteScalar();
+                    if (firstColumn != null)
+                    {
+                        value = Convert.ToInt64(firstColumn);
+                    }
+                }
+
+
+                return value;
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "ExecuteScalar failed");
+                _logger.Error(ex.Message);
                 throw;
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+
+                conn.Dispose();
             }
         }
         #endregion
