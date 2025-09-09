@@ -4,13 +4,16 @@ using CareerNexus.Models.Authetication;
 using CareerNexus.Models.RequestModel;
 using CareerNexus.Models.UserModel;
 using CareerNexus.Services.OtpService;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CareerNexus.Services.Authenticate
 {
@@ -24,6 +27,7 @@ namespace CareerNexus.Services.Authenticate
            __logger = logger;
             _otpservice = otpservice;
         }
+       
         public async Task<ClaimResponseModel> Authenticate(AuthenticationRequestModel request)
         {
             ClaimResponseModel model = new ClaimResponseModel();
@@ -71,7 +75,10 @@ namespace CareerNexus.Services.Authenticate
                 else
                 {
 
-                    string query = "Insert into Users(Username,Email,Fullname,PasswordHash,IsActive,CreatedOn) values (@Username,@Email,@Fullname,@PasswordHash,@IsActive,GetDate())";
+                    string query = @"INSERT INTO Users(UserName, Email, PasswordHash)
+                                    VALUES(@UserName, @Email, @PasswordHash);
+
+                                   SELECT CAST(SCOPE_IDENTITY() AS BIGINT)";
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = query; // 👈 REQUIRED
                     cmd.CommandType = CommandType.Text;
@@ -100,6 +107,7 @@ namespace CareerNexus.Services.Authenticate
             }
             return isinserted;
             }
+       
     }
 }
         

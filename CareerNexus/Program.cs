@@ -2,10 +2,14 @@ using CareerNexus.AppConfiguration;
 using CareerNexus.Models;
 using CareerNexus.Services;
 using CareerNexus.Services.Authenticate;
+using CareerNexus.Services.EmailSender;
+using CareerNexus.Services.EmailTemplate;
 using CareerNexus.Services.OtpService;
+using CareerNexus.Services.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -20,7 +24,10 @@ var configuration = AppConfiguration.LoadConfiguration();
 // Add services to the container.
 builder.Services.AddSingleton<IConfiguration>(AppConfiguration.LoadConfiguration());
 builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
+builder.Services.AddSingleton<IUserService,UserService>();
 builder.Services.AddSingleton<IOTP,OtpService>();
+builder.Services.AddSingleton<IEmailSenderService,EmailSenderService>();
+builder.Services.AddSingleton<IEmailTemplateService,EmailTemplateService>();
 //builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

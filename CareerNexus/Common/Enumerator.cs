@@ -5,6 +5,11 @@ namespace CareerNexus.Common
     public class Enumerator
     {
     }
+    public enum EmailTemplateEnum
+    {
+        [Description("Password Reset Email")]
+        PasswordReset = 100001
+    }
     public enum Databaseoperations
     {
         [Description("Select")]
