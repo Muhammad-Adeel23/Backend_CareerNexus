@@ -5,9 +5,11 @@ using CareerNexus.Models.UserModel;
 using CareerNexus.Services;
 using CareerNexus.Services.Authenticate;
 using CareerNexus.Services.OtpService;
+using CareerNexus.Services.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -20,9 +22,14 @@ namespace CareerNexus.Controllers
         private readonly IAuthenticate _authenticationservice;
         private readonly IOTP _otp;
         private readonly IConfiguration _config;
+        private readonly IUserService _userservice;
+        private readonly ILogger<AccountController> _logger ;
 
-        public AccountController(IAuthenticate authenticationService, IConfiguration config, IOTP otpservice)
+        public AccountController(IAuthenticate authenticationService, IConfiguration config, IOTP otpservice,IUserService userService,ILogger<AccountController> logger
+            )
         {
+           _userservice = userService;
+            _logger = logger;
             _otp = otpservice;
             _authenticationservice = authenticationService;
             _config = config;
@@ -53,7 +60,6 @@ namespace CareerNexus.Controllers
                     Message = msg,
                     IsSuccess = true
                 });
-            
            
         }
         [AllowAnonymous]
@@ -80,7 +86,34 @@ namespace CareerNexus.Controllers
                 IsSuccess = false
             });
         }
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(AuthenticationRequestModel), 200)]
+        [ProducesResponseType(typeof(ErrorResponseModel), 400)]
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { message = "Email is required" });
+            }
 
+            try
+            {
+                bool result = await _userservice.ForgotPassword(request.Email);
+
+                if (!result)
+                {
+                    return NotFound(new { message = "User not found or unable to reset password" });
+                }
+
+                return Ok(new { message = "Password reset successfully. Please check your email." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ForgotPassword for email {Email}", request.Email);
+                return StatusCode(500, new { message = "An error occurred while processing your request." });
+            }
+        }
     }
 
 }
