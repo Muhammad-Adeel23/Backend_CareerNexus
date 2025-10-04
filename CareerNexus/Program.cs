@@ -115,7 +115,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
- app.UseSwaggerUI(c =>
+app.UseCors("AllowFrontend");
+app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareerNexus API v1");
     });app.MapControllers();
