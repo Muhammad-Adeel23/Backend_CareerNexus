@@ -1,4 +1,5 @@
 ﻿using CareerNexus.Models;
+using CareerNexus.Models.ChangePassword;
 using CareerNexus.Models.Common;
 using CareerNexus.Models.RequestModel;
 using CareerNexus.Models.UserModel;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Security.Claims;
 
 namespace CareerNexus.Controllers
 {
@@ -113,6 +115,46 @@ namespace CareerNexus.Controllers
                 _logger.LogError(ex, "Error in ForgotPassword for email {Email}", request.Email);
                 return StatusCode(500, new { message = "An error occurred while processing your request." });
             }
+        }
+
+        [HttpPost("ChangePassword")]
+        [ProducesResponseType(typeof(SuccessResponseModel), 200)]
+        [ProducesResponseType(typeof(ErrorResponseModel), 400)]
+        public async Task<IActionResult> ChangePassword(ChangePassword changePasswordModel) 
+        {
+             //changePasswordModel.UserId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+
+            try
+            { 
+                _logger.LogInformation($"Going to change password. UserId: {changePasswordModel.UserId}"); 
+                string message = string.Empty;
+                var IsChanged = await _userservice.ChangePassword(changePasswordModel);
+                if (IsChanged.Item1) 
+                { return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                { Message = "Password changed successfully.",
+                    Data = IsChanged, StatusCode = (int)HttpStatusCode.OK,
+                    IsSuccess = true
+                });
+                } else { 
+                    return StatusCode((int)HttpStatusCode.BadRequest, new SuccessResponseModel { 
+                        Message = IsChanged.Item2, 
+                        Data = IsChanged.Item1,
+                        StatusCode = (int)HttpStatusCode.BadRequest, 
+                        IsSuccess = false 
+                    }); 
+                } 
+            }
+            catch (Exception ex) { 
+                var message = $"Error occured while changing password, Error = {ex}";
+                _logger.LogError(message);
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel {
+                    IsSuccess = false, 
+                    StatusCode = (int)HttpStatusCode.BadRequest, 
+                    Message = "Some error occurred!", 
+                    Error = new List<object> { new { message = message } },
+                    IsException = true 
+                });
+            } 
         }
     }
 
