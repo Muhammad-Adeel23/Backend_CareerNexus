@@ -58,7 +58,7 @@ namespace CareerNexus.Controllers
                     StatusCode=(int)HttpStatusCode.OK,
                     Data = result,
                     Message = msg,
-                    IsSuccess = true
+                    IsSuccess = isSuccess
                 });
            
         }

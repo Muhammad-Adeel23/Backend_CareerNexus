@@ -6,10 +6,9 @@
         public string Username { get; set; }
         public string Email { get; set; }
         public string Fullname { get; set; }
-        //public bool IsTwoFactorEnabled { get; set; }
+       
 
         public string PassswordHash { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedOn { get; set; }
+       
     }
 }
