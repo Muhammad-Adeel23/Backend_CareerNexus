@@ -1,4 +1,5 @@
 ﻿using CareerNexus.Common;
+using CareerNexus.Models.ChangePassword;
 using CareerNexus.Services.EmailSender;
 using CareerNexus.Services.EmailTemplate;
 using CareerNexus.Services.Setting;
@@ -68,5 +69,51 @@ namespace CareerNexus.Services.User
                 return false;
             }
         }
-    }
+
+        public async Task<(bool, string)> ChangePassword(ChangePassword changePassword)
+        {
+            string message = string.Empty; try
+            {
+                string query = @"SELECT Id FROM USERS WHERE Id = @userId AND PasswordHash = @oldPassword";
+                SqlCommand sqlCmd = new SqlCommand();
+                sqlCmd.Parameters.AddWithValue("@UserId", changePassword.UserId);
+                sqlCmd.Parameters.AddWithValue("@oldPassword", Helper.EncryptString(changePassword.OldPassword));
+                sqlCmd.CommandText = query;
+                sqlCmd.CommandType = CommandType.Text; // Execute the SQL command and return the result.
+               DataTable dt = DBEngine.GetDataTable(sqlCmd,Databaseoperations.Select, query);
+                if (dt.Rows.Count == 0) {
+                    message = "User or password is incorrect";
+                    _logger.LogError($"User or password is incorrect.");
+                    return (false, message); 
+                } 
+                else {
+                    try {
+                        query = @"UPDATE Users SET PasswordHash = @newPassword, UpdatedOn = GETDATE(), UpdatedBy = @userId WHERE Id = @userId";
+                        sqlCmd = new SqlCommand();
+                        sqlCmd.Parameters.AddWithValue("@newPassword", Helper.EncryptString(changePassword.NewPassword));
+                        sqlCmd.Parameters.AddWithValue("@userId", Convert.ToInt64(dt.Rows[0]["Id"]));
+                        sqlCmd.CommandText = query;
+                        sqlCmd.CommandType = CommandType.Text;
+                        var rowsaffected = DBEngine.ExecuteScalar(sqlCmd, Databaseoperations.Update, query);
+                        if (rowsaffected == null) { 
+                            message = "Password update failed.";
+                            _logger.LogError("Password update failed.");
+                            return (false, message);
+                        }         message = "Password update successfully.";
+                        return (true, "");
+                    }
+                    catch (Exception ex) {
+                        _logger.LogError($"Error occured changing password: {ex.Message}");
+                        message = $"Error occured changing password: {ex.Message}";
+                        return (false, message);
+                    } 
+                }
+            }
+            catch (Exception ex) { 
+                _logger.LogError($"ChangePassword: Error occured while changing password, Error: {ex.Message}, StackTrace: {ex.StackTrace}");
+                message = $"ChangePassword: Error occured while changing password, Error: {ex.Message}, StackTrace: {ex.StackTrace}";
+                return (false, message);
+            } 
+        }
+            }
 }
