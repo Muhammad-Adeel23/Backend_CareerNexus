@@ -122,7 +122,8 @@ namespace CareerNexus.Controllers
         [ProducesResponseType(typeof(ErrorResponseModel), 400)]
         public async Task<IActionResult> ChangePassword(ChangePassword changePasswordModel) 
         {
-             //changePasswordModel.UserId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            changePasswordModel.UserId = userId; 
 
             try
             { 
