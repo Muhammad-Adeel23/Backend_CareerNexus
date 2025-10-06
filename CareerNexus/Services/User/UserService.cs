@@ -74,7 +74,7 @@ namespace CareerNexus.Services.User
         {
             string message = string.Empty; try
             {
-                string query = @"SELECT Id FROM USERS WHERE Id = @userId AND PasswordHash = @oldPassword";
+                string query = @"SELECT Id FROM USERS WHERE Id = @UserId AND PasswordHash = @oldPassword";
                 SqlCommand sqlCmd = new SqlCommand();
                 sqlCmd.Parameters.AddWithValue("@UserId", changePassword.UserId);
                 sqlCmd.Parameters.AddWithValue("@oldPassword", Helper.EncryptString(changePassword.OldPassword));
@@ -88,10 +88,10 @@ namespace CareerNexus.Services.User
                 } 
                 else {
                     try {
-                        query = @"UPDATE Users SET PasswordHash = @newPassword, UpdatedOn = GETDATE(), UpdatedBy = @userId WHERE Id = @userId";
+                        query = @"UPDATE Users SET PasswordHash = @newPassword, UpdatedOn = GETDATE(), UpdatedBy = @UserId WHERE Id = @UserId";
                         sqlCmd = new SqlCommand();
                         sqlCmd.Parameters.AddWithValue("@newPassword", Helper.EncryptString(changePassword.NewPassword));
-                        sqlCmd.Parameters.AddWithValue("@userId", Convert.ToInt64(dt.Rows[0]["Id"]));
+                        sqlCmd.Parameters.AddWithValue("@UserId", changePassword.UserId);
                         sqlCmd.CommandText = query;
                         sqlCmd.CommandType = CommandType.Text;
                         var rowsaffected = DBEngine.ExecuteScalar(sqlCmd, Databaseoperations.Update, query);
