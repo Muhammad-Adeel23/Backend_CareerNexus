@@ -75,22 +75,18 @@ namespace CareerNexus.Services.Authenticate
                 else
                 {
 
-                    string query = @"INSERT INTO Users(UserName, Email, PasswordHash)
-                                    VALUES(@UserName, @Email, @PasswordHash);
-
-                                   SELECT CAST(SCOPE_IDENTITY() AS BIGINT)";
+                    string query = @" INSERT INTO Users (UserName, Email, PasswordHash, Fullname, IsActive, CreatedOn)
+                                   VALUES (@UserName, @Email, @PasswordHash, @Fullname, 1, GETDATE());
+                                   SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = query; // 👈 REQUIRED
                     cmd.CommandType = CommandType.Text;
 
-                    cmd.Parameters.AddWithValue("@Username", user.Username);
+                    cmd.Parameters.AddWithValue("@UserName", user.Username);
                     cmd.Parameters.AddWithValue("@Email", user.Email);
                     cmd.Parameters.AddWithValue("@Fullname", user.Fullname);
                     cmd.Parameters.AddWithValue("@PasswordHash", Helper.EncryptString(user.PassswordHash));
-                    cmd.Parameters.AddWithValue("@IsActive",user.IsActive);
-                    cmd.Parameters.AddWithValue("@Createdon",user.CreatedOn);
-
-
+                   
 
                     isinserted = DBEngine.ExecuteScalar(cmd, Databaseoperations.Insert, query);
                    if(isinserted > 0)
