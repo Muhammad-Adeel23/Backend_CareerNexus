@@ -10,7 +10,7 @@ namespace CareerNexus.Services.OtpService
 {
     public class OtpService : IOTP
     {
-        public string BuildToken(long id, string fullName)
+        public string BuildToken(long id, string fullName,long RoleId,string RoleName)
         {
             try
             {
@@ -25,6 +25,9 @@ namespace CareerNexus.Services.OtpService
                 {
             new Claim(ClaimTypes.PrimarySid, id.ToString()),
             new Claim(ClaimTypes.Name, fullName),
+            new Claim(ClaimTypes.Role,RoleId.ToString()),
+            new Claim(ClaimTypes.Role,RoleName),
+
            // new Claim(ClaimTypes.Role, roleId.ToString()),
             new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
         };
@@ -56,12 +59,16 @@ namespace CareerNexus.Services.OtpService
             {
                 Email = user.Email,
                 FullName = user.Fullname,
+                RoleId= user.RoleId,
+                RoleName=user.RoleName,
+                RoleType=user.Roletype
+                
                 //IsTwoFactorEnabled = user.IsTwoFactorEnabled,
                 //ProfilePictureURL = user.ProfilePictureURL, // if null, it's okay
                 //RoleName = user.RoleName
             };
 
-            var token = BuildToken(user.Id, user.Fullname);
+            var token = BuildToken(user.Id, user.Fullname,user.RoleId,user.RoleName);
             response.Token = token;
             //response.IsSuccess = true;
             return response;
