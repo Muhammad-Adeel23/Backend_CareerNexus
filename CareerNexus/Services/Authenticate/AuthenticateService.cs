@@ -33,7 +33,10 @@ namespace CareerNexus.Services.Authenticate
             ClaimResponseModel model = new ClaimResponseModel();
             try
             {
-                string query = "select * from users where Email = @Email and PasswordHash=@Password";
+                string query = @"select U.*,R.RoleName,R.RoleType,UR.RoleId,R.Id  from users U
+                                 INNER JOIN UserRoles UR  ON UR.UserId = U.Id
+                                 Left JOIN Roles R ON UR.RoleId = R.Id
+                                 where Email = @Email and PasswordHash=@Password";
                 SqlCommand cmd = new SqlCommand();
                 cmd.Parameters.AddWithValue("@Email", request.Email==null? (object)DBNull.Value:request.Email);
                 cmd.Parameters.AddWithValue("@Password", request.Password==null?(object)DBNull.Value:Helper.EncryptString(request.Password));

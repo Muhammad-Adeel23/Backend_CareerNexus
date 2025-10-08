@@ -10,6 +10,16 @@ namespace CareerNexus.Common
         [Description("Password Reset Email")]
         PasswordReset = 100001
     }
+
+    public enum RoleType
+    {
+        [Description("Admin")]
+        Admin = 200001,
+
+        [Description("External")]
+        External = 200002
+    }
+
     public enum Databaseoperations
     {
         [Description("Select")]
