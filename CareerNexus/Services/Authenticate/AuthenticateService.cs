@@ -13,6 +13,7 @@ using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CareerNexus.Services.Authenticate
@@ -59,7 +60,7 @@ namespace CareerNexus.Services.Authenticate
                 return model;
             }
         }
-        public async Task<long> Register(UserModel user)
+        public async Task<long> Register(UserRequestModel user)
         {
             long isinserted = 0;
             try
@@ -88,16 +89,25 @@ namespace CareerNexus.Services.Authenticate
                     cmd.Parameters.AddWithValue("@UserName", user.Username);
                     cmd.Parameters.AddWithValue("@Email", user.Email);
                     cmd.Parameters.AddWithValue("@Fullname", user.Fullname);
+                    //cmd.Parameters.AddWithValue("@Fullname", user.Fullname);
                     cmd.Parameters.AddWithValue("@PasswordHash", Helper.EncryptString(user.PassswordHash));
                    
 
                     isinserted = DBEngine.ExecuteScalar(cmd, Databaseoperations.Insert, query);
                    if(isinserted > 0)
                     {
-                        __logger.LogInformation("User Create Successfully");
-                        return isinserted;
+                        query = "Insert into UserRoles (UserId,RoleId) values(@UserId,@roleid)";
+                        cmd = new SqlCommand();
+                        cmd.Parameters.AddWithValue("@UserId", isinserted);
+                        cmd.Parameters.AddWithValue("@roleid", user.RoleId==0?2:user.RoleId);
+                        cmd.CommandText= query;
+                        cmd.CommandType= CommandType.Text;
+                        DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Insert, query);
+  
                         
                     }
+                    __logger.LogInformation("User Create Successfully");
+                    return isinserted;
                 }
             }
             catch (Exception ex)
