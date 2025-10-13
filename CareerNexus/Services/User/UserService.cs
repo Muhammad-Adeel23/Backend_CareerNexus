@@ -70,6 +70,7 @@ namespace CareerNexus.Services.User
             }
         }
 
+
         public async Task<(bool, string)> ChangePassword(ChangePassword changePassword)
         {
             string message = string.Empty; try

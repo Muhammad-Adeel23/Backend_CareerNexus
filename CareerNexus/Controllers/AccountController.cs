@@ -40,8 +40,10 @@ namespace CareerNexus.Controllers
         [AllowAnonymous]
         [ProducesResponseType(typeof(AuthenticationRequestModel), 200)]
         [HttpPost("Register")]
-        public async Task <IActionResult> Register(UserModel user)
+        public async Task <IActionResult> Register(UserRequestModel user)
         {
+            //var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            
             long result = await _authenticationservice.Register(user);
             string msg = string.Empty;
             bool isSuccess = false;
