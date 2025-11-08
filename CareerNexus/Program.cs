@@ -1,10 +1,15 @@
 using CareerNexus.AppConfiguration;
 using CareerNexus.Models;
 using CareerNexus.Services;
+using CareerNexus.Services.ArtificalIntelligence;
 using CareerNexus.Services.Authenticate;
+using CareerNexus.Services.CareerRecommendation;
 using CareerNexus.Services.EmailSender;
 using CareerNexus.Services.EmailTemplate;
 using CareerNexus.Services.OtpService;
+using CareerNexus.Services.ResumeAnalyzer;
+using CareerNexus.Services.ResumeParser;
+using CareerNexus.Services.Storage;
 using CareerNexus.Services.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,6 +33,12 @@ builder.Services.AddSingleton<IUserService,UserService>();
 builder.Services.AddSingleton<IOTP,OtpService>();
 builder.Services.AddSingleton<IEmailSenderService,EmailSenderService>();
 builder.Services.AddSingleton<IEmailTemplateService,EmailTemplateService>();
+//builder.Services.AddSingleton<IArtificialIntelligence, ArtificialIntelligence>();
+builder.Services.AddHttpClient<IArtificialIntelligence, ArtificialIntelligence>();
+builder.Services.AddSingleton<IResumeAnalyzer, ResumeAnalyzer>();
+builder.Services.AddSingleton<IResumeParser, ResumeParser>();
+builder.Services.AddSingleton<IStorageService, LocalStorageService>();
+builder.Services.AddSingleton<ICareerRecommendationService, CareerRecommendationService>();
 //builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

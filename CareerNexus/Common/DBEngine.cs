@@ -348,6 +348,48 @@ namespace CareerNexus.Common
                 throw;
             }
         }
+        public static async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, Databaseoperations? databaseOperation = null, string? query = null)
+        {
+            var conn = new SqlConnection(connectionString);
+            try
+            {
+                await conn.OpenAsync();
+                cmd.Connection = conn;
+                cmd.CommandTimeout = int.MaxValue;
+
+                var operation = GetOperationName(databaseOperation);
+
+                if (!databaseOperation.HasValue)
+                {
+                    operation = "SQL Query";
+                }
+
+                var timer = new Stopwatch();
+                timer.Start();
+
+                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection); // ensures conn closes with reader.Close()
+
+                timer.Stop();
+                TimeSpan timeTaken = timer.Elapsed;
+                var timeDiff = timeTaken.ToString(@"m\:ss\.fff");
+
+                // Log execution time
+                if (!string.IsNullOrWhiteSpace(query) || databaseOperation.HasValue)
+                {
+                    LogDBActionWithTime(operation, timeDiff, query);
+                }
+
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error executing async reader for query: {Query}", query);
+                if (conn.State == ConnectionState.Open)
+                    await conn.CloseAsync();
+                conn.Dispose();
+                throw;
+            }
+        }
         #endregion
 
         #region Transactional Execution
