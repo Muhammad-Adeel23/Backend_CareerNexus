@@ -8,7 +8,7 @@ namespace CareerNexus.Common
     public static class DBEngine 
     {
         private static int result = 0;
-        private static readonly string connectionString = "Server=localhost\\SQLEXPRESS;Database=CareerNexus;User Id=Adeel123;Password=test123;TrustServerCertificate=True;";
+        private static readonly string connectionString = "workstation id=CareerNexus.mssql.somee.com;packet size=4096;user id=CareerNexus;pwd=careernexus;data source=CareerNexus.mssql.somee.com;persist security info=False;initial catalog=CareerNexus;TrustServerCertificate=True";
         private static readonly Serilog.ILogger _logger = Log.ForContext(typeof(DBEngine));
 
 
@@ -73,6 +73,54 @@ namespace CareerNexus.Common
                 conn.Dispose();
             }
         }
+
+
+        public static async Task<bool> ExecuteNonQueryAsync(SqlCommand cmd, Databaseoperations? databaseoperations = null, string? query = null)
+        {
+            using SqlConnection conn = new SqlConnection(connectionString);
+            try
+            {
+                if (conn.State == ConnectionState.Closed)
+                    await conn.OpenAsync();
+
+                cmd.Connection = conn;
+                cmd.CommandTimeout = int.MaxValue;
+
+                var operation = GetOperationName(databaseoperations);
+                if (!databaseoperations.HasValue)
+                {
+                    operation = "SQL Query";
+                }
+
+                int result = 0;
+                if (!string.IsNullOrWhiteSpace(query) || databaseoperations.HasValue)
+                {
+                    var timer = new Stopwatch();
+                    timer.Start();
+
+                    result = await cmd.ExecuteNonQueryAsync();
+
+                    timer.Stop();
+                    TimeSpan timeTaken = timer.Elapsed;
+                    var timeDiff = timeTaken.ToString(@"m\:ss\.fff");
+
+                    LogDBActionWithTime(operation, timeDiff, query);
+                }
+                else
+                {
+                    result = await cmd.ExecuteNonQueryAsync();
+                }
+
+                return result > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.Message);
+                throw;
+            }
+        }
+
+
 
         public static int ExecuteNonQueryRowCount(SqlCommand cmd, string? query = null)
         {

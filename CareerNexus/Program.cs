@@ -7,6 +7,7 @@ using CareerNexus.Services.CareerRecommendation;
 using CareerNexus.Services.EmailSender;
 using CareerNexus.Services.EmailTemplate;
 using CareerNexus.Services.OtpService;
+using CareerNexus.Services.Personality;
 using CareerNexus.Services.ResumeAnalyzer;
 using CareerNexus.Services.ResumeParser;
 using CareerNexus.Services.Storage;
@@ -39,6 +40,7 @@ builder.Services.AddSingleton<IResumeAnalyzer, ResumeAnalyzer>();
 builder.Services.AddSingleton<IResumeParser, ResumeParser>();
 builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 builder.Services.AddSingleton<ICareerRecommendationService, CareerRecommendationService>();
+builder.Services.AddSingleton<IPersonalityService, PersonalityService>();
 //builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

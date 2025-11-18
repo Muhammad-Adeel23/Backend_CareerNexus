@@ -75,10 +75,18 @@ namespace CareerNexus.Controllers
                 if (string.IsNullOrWhiteSpace(text))
                     return BadRequest("The uploaded resume appears to be empty or unreadable.");
 
+                
                 // analyze via AI
                 var analysis = await _analyzer.AnalyzeResumeAsync(text);
+                if (analysis.MissingSkills.Any() == true)
+                
+                    analysis.Tutorials = await _analyzer.GetTutorialLinksAsync(analysis.MissingSkills);
+                string city = "Karachi";
+                if (analysis.CareerRecommendation?.Any() == true)
+                    
+                    analysis.JobVacancies = await _aiservce.GetJobVacanciesAsync(analysis.CareerRecommendation, city); // city can be parameterized
 
-              
+
 
                 // save to DB
                 var saved = await SaveResumeToDbAsync(userId, storedFilePath, analysis);
