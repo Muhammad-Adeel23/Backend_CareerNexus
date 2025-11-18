@@ -8,8 +8,10 @@ namespace CareerNexus.Services.ResumeAnalyzer
     public class ResumeAnalyzer : IResumeAnalyzer
     {
         private readonly IArtificialIntelligence _aiService;
-        public ResumeAnalyzer(IArtificialIntelligence aiService)
+       
+        public ResumeAnalyzer(IArtificialIntelligence aiService, IConfiguration config)
         {
+           
             _aiService = aiService;
         }
         public async Task<ResumeAnalysisResult> AnalyzeResumeAsync(string resumeText)
@@ -24,14 +26,14 @@ Use this schema:
   ""MatchedSkills"": [string],
   ""MissingSkills"": [string],
   ""Suggestions"": [string],
-  ""CareerRecommendation"": [string],   // Recommend 3-5 careers based on skills or general information of CV
-  ""CareerCount"": number
+  ""CareerRecommendation"": [string],   // Recommend  career based on skills or general information of CV
+  ""CareerCount"": number 
 }}
 Resume Text:
 {resumeText}
 
 Instructions:
-- Suggest 3 to 5 suitable career titles in 'CareerRecommendation' based on skills found in the resume.
+- Suggest only one suitable career titles in 'CareerRecommendation' based on skills found in the resume.
 - Count them and set 'CareerCount'.
 - Do NOT use data from your DB; rely on skills in resume and general career knowledge.
 ";
@@ -66,6 +68,40 @@ Instructions:
                 return new ResumeAnalysisResult();
             }
         }
+
+        public async Task<Dictionary<string, List<string>>> GetTutorialLinksAsync(List<string> missingSkills)
+        {
+            var tutorials = new Dictionary<string, List<string>>();
+
+            foreach (var skill in missingSkills)
+            {
+                var prompt = $@"List 3 free and updated online tutorials (YouTube, Coursera, or official documentation)
+               for learning '{skill}'. Respond strictly in JSON array format, example: [""url1"", ""url2"", ""url3""]";
+
+                var response = await _aiService.OpenAITurboModelAsync(prompt, skill);
+
+                try
+                {
+                    var j = JToken.Parse(response);
+                    var content = j.SelectToken("choices[0].message.content")?.ToString() ?? response;
+                    if (content.StartsWith("```"))
+                        content = content.Replace("```json", "").Replace("```", "").Trim();
+
+                    var links = JsonConvert.DeserializeObject<List<string>>(content);
+                    tutorials[skill] = links ?? new List<string>();
+                }
+                catch
+                {
+                    tutorials[skill] = new List<string>();
+                }
+            }
+
+            return tutorials;
+        }
+
+
+        
+
 
     }
 }
