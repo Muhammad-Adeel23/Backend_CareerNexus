@@ -8,7 +8,9 @@ namespace CareerNexus.Common
     public static class DBEngine 
     {
         private static int result = 0;
-        private static readonly string connectionString = "workstation id=CareerNexus.mssql.somee.com;packet size=4096;user id=CareerNexus;pwd=careernexus;data source=CareerNexus.mssql.somee.com;persist security info=False;initial catalog=CareerNexus;TrustServerCertificate=True";
+        private static readonly string connectionString =
+      Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+      ?? "your local dev connection string here";  
         private static readonly Serilog.ILogger _logger = Log.ForContext(typeof(DBEngine));
 
 
