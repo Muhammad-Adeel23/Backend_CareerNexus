@@ -29,7 +29,9 @@
 
         private static void LoadAppSettings()
         {
-            _dbConnection = _config.GetSection("ConnectionStrings:DefaultConnection").Value;
+            _dbConnection = _config.GetConnectionString("DefaultConnection")
+                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
             _secret = _config["AppKeys:Secret"];
             _validIssuer = _config["AppKeys:ValidIssuer"];
             _validAudience = _config["AppKeys:ValidAudience"];
