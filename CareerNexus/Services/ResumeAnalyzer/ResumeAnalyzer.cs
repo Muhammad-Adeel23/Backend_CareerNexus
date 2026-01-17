@@ -1,5 +1,8 @@
-﻿using CareerNexus.Models.Resume;
+﻿using CareerNexus.Common;
+using CareerNexus.Models;
+using CareerNexus.Models.Resume;
 using CareerNexus.Services.ArtificalIntelligence;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -100,8 +103,44 @@ Instructions:
         }
 
 
-        
+        public Task<SaveResumeDTO> GetLatestResume(long userId)
+        {
+            string query = @"
+     SELECT TOP 1 
+         FileURL,
+         ParsedSkills,
+         Analysis,
+         UploadedAt
+     FROM Resumes
+     WHERE UserId = @UserId
+     ORDER BY UploadedAt DESC";
 
+            SqlCommand cmd = new SqlCommand(query);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+
+            var dt = DBEngine.GetDataTable(cmd, Databaseoperations.Select, query);
+
+            if (dt.Rows.Count == 0)
+                return Task.FromResult<SaveResumeDTO>(null);
+
+            var dto = new SaveResumeDTO
+            {
+                FileURL = dt.Rows[0]["FileURL"].ToString(),
+                ParsedSkills = dt.Rows[0]["ParsedSkills"].ToString(),
+                Analysis = dt.Rows[0]["Analysis"].ToString(),
+                UploadedAt = Convert.ToDateTime(dt.Rows[0]["UploadedAt"])
+            };
+
+            return Task.FromResult(dto);
+        }
+
+        public ResumeAnalysisResult ParseAnalysis(string analysisJson)
+        {
+            if (string.IsNullOrEmpty(analysisJson))
+                return null;
+
+            return JsonConvert.DeserializeObject<ResumeAnalysisResult>(analysisJson);
+        }
 
     }
 }

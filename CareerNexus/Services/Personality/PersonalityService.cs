@@ -49,7 +49,7 @@ namespace CareerNexus.Services.Personality
 
         private static readonly Dictionary<string, string> Descriptions = new()
         {
-            {"INTJ","Strategic, analytical, independent thinkers. Good at long-term planning and solving complex problems."},
+            {"INTJ","Strategic, analytical, independent thinkers. cc"},
             {"INTP","Curious, theoretical, and inventive. Enjoy exploring ideas and systems."},
             {"ENTJ","Natural leaders. Strategic, decisive, and organized—seek to drive projects forward."},
             {"ENTP","Inventive and energetic. Enjoy debate and coming up with new approaches."},
@@ -76,7 +76,7 @@ namespace CareerNexus.Services.Personality
             {"ISTJ", new(){"Accountant","Quality Assurance","Backend Developer"}},
             
         };
-        public async Task<PersonalityResult> AnalyzeAsync(PersonalityRequest request, bool useAiExplanation = true)
+        public async Task<PersonalityResult>  AnalyzeAsync(PersonalityRequest request, bool useAiExplanation = true)
         {
             // validate length
             if (request?.Answers == null || request.Answers.Count != Questions.Count)
@@ -139,16 +139,19 @@ namespace CareerNexus.Services.Personality
                     var prompt = GenerateAiPrompt(result);
                     var aiResponse = await _AI.OpenAITurboModelAsync(prompt, "");
 
-                   
                     if (!string.IsNullOrWhiteSpace(aiResponse))
                     {
-                   
-                        var cleaned = aiResponse.Trim();
-                        if (cleaned.StartsWith("```"))
+                        // remove JSON if any
+                        if (aiResponse.Contains("\"content\""))
                         {
-                            cleaned = cleaned.Trim('`').Trim();
+                            var start = aiResponse.IndexOf("\"content\":\"") + 11;
+                            var end = aiResponse.LastIndexOf("\"");
+                            aiResponse = aiResponse.Substring(start, end - start)
+                                                   .Replace("\\n", "\n")
+                                                   .Replace("\\\"", "\"");
                         }
-                        result.Description += "\n\n" + cleaned;
+
+                        result.Description += "\n\n" + aiResponse.Trim();
                     }
                 }
                 catch
@@ -164,9 +167,9 @@ namespace CareerNexus.Services.Personality
         {
             string answerJson = JsonConvert.SerializeObject(request.Answers);
             string query = @"Insert into Assesments
-                           (UserId, TempSessionId, Answer, TotalScore, PersonalityType, CompletedAt, AssessmentType)
+                           (UserId, TempSessionId, Answers, TotalScore, PersonalityType, CompletedAt, AssessmentType,Description)
                            VALUES 
-                          (@UserId, @TempSessionId, @Answer, @TotalScore, @PersonalityType, GETDATE(), @AssessmentType)";
+                          (@UserId, @TempSessionId, @Answer, @TotalScore, @PersonalityType, GETDATE(), @AssessmentType,@Description)";
 
             SqlCommand cmd = new SqlCommand();
             cmd.CommandText = query;
@@ -178,6 +181,7 @@ namespace CareerNexus.Services.Personality
             cmd.Parameters.AddWithValue("@TotalScore", result.CareerScore);
             cmd.Parameters.AddWithValue("@PersonalityType", result.PersonalityType);
             cmd.Parameters.AddWithValue("@AssessmentType", "Personality");
+            cmd.Parameters.AddWithValue("@Description", result.Description);
 
             bool insert = await DBEngine.ExecuteNonQueryAsync(cmd, Databaseoperations.Insert, query);
             if (insert)

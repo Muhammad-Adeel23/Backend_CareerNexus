@@ -1,4 +1,5 @@
 ﻿using CareerNexus.Common;
+using CareerNexus.Models;
 using CareerNexus.Models.ChangePassword;
 using CareerNexus.Services.EmailSender;
 using CareerNexus.Services.EmailTemplate;
@@ -116,5 +117,6 @@ namespace CareerNexus.Services.User
                 return (false, message);
             } 
         }
-            }
+        
+    }
 }

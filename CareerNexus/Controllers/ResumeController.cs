@@ -126,6 +126,29 @@ VALUES (@UserId, @FileURL, @ParsedSkills, @Analysis, GETDATE());";
             return Task.FromResult(success);
         }
 
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatestResume()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { message = "User not found!" });
 
+            var userId = Convert.ToInt64(userIdClaim);
+            var resume = await _analyzer.GetLatestResume(userId);
+
+            if (resume == null)
+                return NotFound(new { message = "No resume uploaded yet!" });
+
+            // Parse the Analysis JSON to send structured data to frontend
+            var analysisObj = _analyzer.ParseAnalysis(resume.Analysis);
+
+            return Ok(new
+            {
+                fileURL = resume.FileURL,
+                parsedSkills = resume.ParsedSkills,
+                uploadedAt = resume.UploadedAt,
+                analysis = analysisObj
+            });
+        }
     }
 }
