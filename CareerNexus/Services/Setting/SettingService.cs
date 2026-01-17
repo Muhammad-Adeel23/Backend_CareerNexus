@@ -7,7 +7,7 @@ namespace CareerNexus.Services.Setting
 {
     public class SettingService:ISettingService
     {
-        private static readonly string connectionString = "Server=localhost\\SQLEXPRESS;Database=CareerNexus;User Id=Adeel123;Password=test123;TrustServerCertificate=True;";
+        private static readonly string connectionString = "workstation id=CareerNexus.mssql.somee.com;packet size=4096;user id=CareerNexus;pwd=careernexus;data source=CareerNexus.mssql.somee.com;persist security info=False;initial catalog=CareerNexus;TrustServerCertificate=True";
 
         public static List<T> ConvertToList<T>(DataTable dt)
         {
