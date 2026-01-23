@@ -15,10 +15,14 @@
             Directory.CreateDirectory(userFolder);
             var safeName = Path.GetFileName(file.FileName);
             var filePath = Path.Combine(userFolder, safeName);
-            using var fs = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(fs);
-            // return relative path or URL depending on your usage
-            return filePath;
+
+            using (var fs = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fs);
+            }
+
+            
+            return safeName;
         }
     }
 

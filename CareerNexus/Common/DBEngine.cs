@@ -367,6 +367,64 @@ namespace CareerNexus.Common
             }
 
         }
+        public static async Task<DataTable> GetDataTableAsync(
+    SqlCommand cmd,
+    Databaseoperations? databaseOperation = null,
+    string? query = null,
+    bool? logFlagOnAndOff = null)
+        {
+            cmd.CommandTimeout = int.MaxValue;
+            DataTable dt = new DataTable();
+
+            var operation = GetOperationName(databaseOperation);
+
+            if (!databaseOperation.HasValue)
+            {
+                operation = "SQL Query";
+            }
+
+            if (!string.IsNullOrWhiteSpace(query) || databaseOperation.HasValue)
+            {
+                var timer = new Stopwatch();
+                timer.Start();
+
+                var ds = await GetDataSetAsync(cmd);
+                dt = ds.Tables[0];
+
+                timer.Stop();
+                TimeSpan timeTaken = timer.Elapsed;
+                var timeDiff = timeTaken.ToString(@"m\:ss\.fff");
+
+                if (logFlagOnAndOff == null || logFlagOnAndOff == true)
+                {
+                    LogDBActionWithTime(operation, timeDiff, query);
+                }
+            }
+            else
+            {
+                var ds = await GetDataSetAsync(cmd);
+                dt = ds.Tables[0];
+            }
+
+            return dt;
+        }
+        public static async Task<DataSet> GetDataSetAsync(SqlCommand cmd)
+        {
+            DataSet ds = new DataSet();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                cmd.Connection = con;
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    await Task.Run(() => da.Fill(ds));
+                }
+            }
+
+            return ds;
+        }
+
         #endregion
 
         #region BulkInsert

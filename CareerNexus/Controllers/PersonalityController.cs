@@ -54,5 +54,30 @@ namespace CareerNexus.Controllers
             }
         }
 
+        [HttpGet("GetUserResult")]
+        public async Task<IActionResult> GetPersonalityResult()
+        {
+
+            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            var result = await _service.GetUserAssessmentAsync(userId);
+
+            if (result == null)
+            {
+                return Ok(new
+                {
+                    isSuccess = true,
+                    data = (object)null,
+                    message = "Assessment not completed yet"
+                });
+            }
+
+            return Ok(new
+            {
+                isSuccess = true,
+                data = result,
+                message = "Assessment result retrieved successfully"
+            });
+        }
+
     }
 }
