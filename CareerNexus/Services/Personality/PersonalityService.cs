@@ -1,4 +1,5 @@
 ﻿using CareerNexus.Common;
+using CareerNexus.Models.UserAssesment;
 using CareerNexus.Services.ArtificalIntelligence;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
@@ -211,5 +212,44 @@ Respond in plain text only, no JSON.";
 
         // expose Questions for frontend to render
         public static List<QuestionItem> GetQuestions() => Questions.Select(q =>q).ToList();
+
+        public async Task<AssessmentResultResponse?> GetUserAssessmentAsync(long userId)
+        {
+            string query = @"
+        SELECT TOP 1 
+            Id,
+            UserId,
+            PersonalityType,
+            TotalScore,
+            Description,
+            CompletedAt
+        FROM Assesments
+        WHERE UserId = @UserId
+          AND AssessmentType = 'Personality'
+        ORDER BY CompletedAt DESC";
+
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandText = query;
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@UserId", userId);
+
+            DataTable dt =  await DBEngine.GetDataTableAsync(cmd,Databaseoperations.Select,query);
+
+            if (dt.Rows.Count == 0)
+                return null;
+
+            DataRow row = dt.Rows[0];
+
+            return new AssessmentResultResponse
+            {
+                Id = Convert.ToInt64(row["Id"]),
+                UserId = Convert.ToInt64(row["UserId"]),
+                PersonalityType = row["PersonalityType"]?.ToString(),
+                CareerScore = Convert.ToInt32(row["TotalScore"]),
+                Description = row["Description"]?.ToString(),
+                CompletedAt = Convert.ToDateTime(row["CompletedAt"]),
+                IsCompleted = true
+            };
+        }
     }
 }

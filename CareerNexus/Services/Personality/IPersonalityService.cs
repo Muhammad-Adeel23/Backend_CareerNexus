@@ -1,4 +1,5 @@
-﻿using static CareerNexus.Models.PersonalityModels;
+﻿using CareerNexus.Models.UserAssesment;
+using static CareerNexus.Models.PersonalityModels;
 
 namespace CareerNexus.Services.Personality
 {
@@ -8,6 +9,7 @@ namespace CareerNexus.Services.Personality
 
         Task<bool> SaveAssessmentResultAsync(long? userId, Guid? tempSessionId, PersonalityRequest request, PersonalityResult result);
 
+        Task<AssessmentResultResponse?> GetUserAssessmentAsync(long userId);
 
 
 }
