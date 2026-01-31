@@ -175,7 +175,7 @@ namespace CareerNexus.Services.Personality
             SqlCommand cmd = new SqlCommand();
             cmd.CommandText = query;
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@UserId", (object?)userId ?? DBNull.Value);
 
             cmd.Parameters.AddWithValue("@TempSessionId", (object?)tempSessionId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Answer", answerJson);

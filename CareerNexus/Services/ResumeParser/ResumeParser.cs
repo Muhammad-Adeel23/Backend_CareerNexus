@@ -1,7 +1,11 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using CareerNexus.Common;
+using CareerNexus.Models.Resume;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Security.Claims;
 using System.Text;
 using UglyToad.PdfPig;
@@ -20,7 +24,32 @@ namespace CareerNexus.Services.ResumeParser
         //    var text = extractor.Extract(stream).Text;
         //    return text ?? string.Empty;
         //}
+        public bool MigrateUserData(MigrateGuestDataRequest request, long UserId)
+        {
+            const string query = @"
+                                -- Resume
+                                UPDATE Resumes
+                                SET UserId = @UserId,
+                                    TempSessionId = NULL
+                                WHERE TempSessionId = @TempSessionId;
+                                
+                                -- Assessments
+                                UPDATE Assesments
+                                SET UserId = @UserId,
+                                    TempSessionId = NULL
+                                WHERE TempSessionId = @TempSessionId;
+                                ";
 
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandText = query;
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Parameters.Add("@UserId", SqlDbType.BigInt).Value = UserId;
+            cmd.Parameters.Add("@TempSessionId", SqlDbType.UniqueIdentifier).Value = request.TempSessionId;
+
+           bool result =  DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Update, query);
+            return result;
+        }
         public async Task<string> ExtractTextFromFileAsync(IFormFile file)
         {
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();

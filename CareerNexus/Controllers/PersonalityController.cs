@@ -23,20 +23,33 @@ namespace CareerNexus.Controllers
             var qs = PersonalityService.GetQuestions();
             return Ok(new { message = "Questions loaded", data = qs });
         }
-
         [HttpPost("analyze")]
         public async Task<IActionResult> Analyze([FromBody] PersonalityRequest req, [FromQuery] bool useAi = true)
         {
-            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
-            if (req == null || req.Answers == null)
-                return BadRequest(new { message = "Invalid request" });
+            long? userId = null;
+
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var claim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
+                if (!string.IsNullOrEmpty(claim))
+                    userId = Convert.ToInt64(claim);
+            }
+            // ✅ Guest must send TempSessionId
+            Guid? tempSessionGuid = null;
+
+            if (userId == null && !string.IsNullOrEmpty(req.TempSessionId))
+            {
+                tempSessionGuid = Guid.Parse(req.TempSessionId);
+            }
+
+
 
             try
             {
                 var result = await _service.AnalyzeAsync(req, useAi);
                 bool saved = await _service.SaveAssessmentResultAsync(
-                             userId: userId > 0 ? userId : (long?)null, 
-                             tempSessionId: Guid.NewGuid(),           
+                             userId: userId,
+                               tempSessionId: tempSessionGuid,
                              request: req,
                              result: result
        );

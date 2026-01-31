@@ -57,6 +57,7 @@ namespace CareerNexus.Services.OtpService
         {
             var response = new ClaimResponseModel
             {
+                Id=user.Id,
                 Email = user.Email,
                 FullName = user.Fullname,
                 RoleId= user.RoleId,

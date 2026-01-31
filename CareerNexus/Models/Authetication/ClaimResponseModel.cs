@@ -2,6 +2,7 @@
 {
     public class ClaimResponseModel
     {
+        public long Id { get; set; }
         public string? FullName { get; set; }
         public string RoleName { get; set; }
         public long RoleId { get; set; }
