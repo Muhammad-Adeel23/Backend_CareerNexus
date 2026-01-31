@@ -47,7 +47,7 @@ namespace CareerNexus.Controllers
         }
         [AllowAnonymous]
         [HttpPost("UploadResume")]
-        [Authorize]
+       
         public async Task<IActionResult> UploadResume([FromForm] ResumeUploadRequest request)
         {
             try
@@ -57,6 +57,10 @@ namespace CareerNexus.Controllers
                 var userIdClaim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
                 if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var parsed))
                     userId = parsed;
+
+                if (userId == null && request.TempSessionId == null)
+                    return BadRequest("Temp session is required for guest users.");
+
 
                 if (request.ResumeFile == null || request.ResumeFile.Length == 0)
                     return BadRequest("No resume uploaded.");
@@ -89,7 +93,7 @@ namespace CareerNexus.Controllers
 
 
                 // save to DB
-                var saved = await SaveResumeToDbAsync(userId, storedFilePath, analysis);
+                var saved = await SaveResumeToDbAsync(userId, request.TempSessionId, storedFilePath, analysis);
                 if (!saved) return StatusCode(500, "Failed to save resume.");
 
                 return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
@@ -106,17 +110,45 @@ namespace CareerNexus.Controllers
             }
         }
 
-        private Task<bool> SaveResumeToDbAsync(long? userId, string fileUrl, ResumeAnalysisResult analysis)
+        [Authorize]
+        [HttpPost("MigrateGuestData")]
+        public IActionResult MigrateGuestData(MigrateGuestDataRequest request)
+        {
+            if (request.TempSessionId == Guid.Empty)
+                return BadRequest("TempSessionId is required.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("UserId not found in token.");
+
+            long userId = long.Parse(userIdClaim);
+            var result  = _parser.MigrateUserData(request,userId);
+            if (result)
+            {
+
+                return Ok(new SuccessResponseModel
+                {
+                    IsSuccess = true,
+                    Message = "Guest data migrated successfully"
+                });
+            }
+            return StatusCode(500, "Failed to migrate guest data.");
+
+        }
+
+
+        private Task<bool> SaveResumeToDbAsync(long? userId, Guid? tempSessionId, string fileUrl, ResumeAnalysisResult analysis)
         {
             const string query = @"
-INSERT INTO Resumes (UserId, FileURL, ParsedSkills, Analysis, UploadedAt)
-VALUES (@UserId, @FileURL, @ParsedSkills, @Analysis, GETDATE());";
+INSERT INTO Resumes (UserId, TempSessionId, FileURL, ParsedSkills, Analysis, UploadedAt)
+VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());";
 
             SqlCommand cmd = new SqlCommand();
             cmd.CommandText = query;
             cmd.CommandType = CommandType.Text;
 
             cmd.Parameters.Add("@UserId", SqlDbType.BigInt).Value = userId ?? (object)DBNull.Value;
+            cmd.Parameters.Add("@TempSessionId", SqlDbType.UniqueIdentifier) .Value = tempSessionId ?? (object)DBNull.Value;
             cmd.Parameters.Add("@FileURL", SqlDbType.NVarChar, 500).Value = fileUrl ?? string.Empty;
             cmd.Parameters.Add("@ParsedSkills", SqlDbType.NVarChar, -1).Value = string.Join(",", analysis?.MatchedSkills ?? new List<string>());
             cmd.Parameters.Add("@Analysis", SqlDbType.NVarChar, -1).Value = JsonConvert.SerializeObject(analysis ?? new ResumeAnalysisResult());

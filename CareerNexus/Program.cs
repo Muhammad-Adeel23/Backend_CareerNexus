@@ -1,6 +1,7 @@
 using CareerNexus.AppConfiguration;
 using CareerNexus.Models;
 using CareerNexus.Services;
+using CareerNexus.Services.Admin;
 using CareerNexus.Services.ArtificalIntelligence;
 using CareerNexus.Services.Authenticate;
 using CareerNexus.Services.CareerRecommendation;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = AppConfiguration.LoadConfiguration();
@@ -41,6 +43,7 @@ builder.Services.AddSingleton<IResumeParser, ResumeParser>();
 builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 builder.Services.AddSingleton<ICareerRecommendationService, CareerRecommendationService>();
 builder.Services.AddSingleton<IPersonalityService, PersonalityService>();
+builder.Services.AddSingleton<IAdminService, AdminService>();
 //builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -111,25 +114,33 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:8080", "https://preview--career-nexus-guide.lovable.app")
+        policy.WithOrigins("http://localhost:8080", "https://careernexus-guide.netlify.app")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
-var app = builder.Build();
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
+var app = builder.Build();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
 //var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 //app.Urls.Add($"http://0.0.0.0:{port}");
 
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
+//if (app.Environment.IsDevelopment())
+//{
+//    app.MapOpenApi();
+//}
 app.UseCors("AllowFrontend");
+//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
