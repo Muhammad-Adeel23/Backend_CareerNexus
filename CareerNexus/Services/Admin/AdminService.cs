@@ -111,12 +111,12 @@ namespace CareerNexus.Services.Admin
                 stats.TotalUsers = (int)DBEngine.ExecuteScalar(cmd, Databaseoperations.Select, query);
 
                 // Assessments Completed
-                query = "SELECT COUNT(*) FROM Assesments WHERE UserId IS NOT NULL";
+                query = "SELECT COUNT(DISTINCT UserId) FROM Assesments WHERE UserId IS NOT NULL";
                 cmd = new SqlCommand(query);
                 stats.AssessmentsCompleted = (int)DBEngine.ExecuteScalar(cmd, Databaseoperations.Select, query);
 
                 // Resumes Uploaded
-                query = "SELECT COUNT(*) FROM Resumes WHERE UserId IS NOT NULL";
+                query = "SELECT COUNT(DISTINCT UserId) FROM Resumes WHERE UserId IS NOT NULL";
                 cmd = new SqlCommand(query);
                 stats.ResumesUploaded = (int)DBEngine.ExecuteScalar(cmd, Databaseoperations.Select, query);
 
