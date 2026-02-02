@@ -169,7 +169,7 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
             var resume = await _analyzer.GetLatestResume(userId);
 
             if (resume == null)
-                return NotFound(new { message = "No resume uploaded yet!" });
+                return Ok(new { message = "No resume uploaded yet!" });
 
             // Parse the Analysis JSON to send structured data to frontend
             var analysisObj = _analyzer.ParseAnalysis(resume.Analysis);
