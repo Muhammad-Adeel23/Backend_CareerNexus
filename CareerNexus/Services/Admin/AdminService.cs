@@ -121,7 +121,13 @@ namespace CareerNexus.Services.Admin
                 stats.ResumesUploaded = (int)DBEngine.ExecuteScalar(cmd, Databaseoperations.Select, query);
 
                 // Career Matches (count of assessments with personality types)
-                query = "SELECT COUNT(*) FROM Assesments WHERE PersonalityType IS NOT NULL AND PersonalityType != ''";
+                query = @"SELECT SUM(CAST(JSON_VALUE(r.Analysis, '$.CareerCount') AS INT))
+                          FROM Resumes r
+                          INNER JOIN (
+                              SELECT UserId, MAX(Id) AS MaxId
+                              FROM Resumes where userid is not null
+                              GROUP BY UserId
+                          ) x ON r.Id = x.MaxId";
                 cmd = new SqlCommand(query);
                 stats.CareerMatches = (int)DBEngine.ExecuteScalar(cmd, Databaseoperations.Select, query);
 
@@ -253,7 +259,11 @@ namespace CareerNexus.Services.Admin
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Delete, query);
 
-                query = "DELETE FROM Users WHERE Id = @UserId";
+                query = @"
+
+Delete From resumes where userid = @UserId
+Delete assesments where userid = @userid
+DELETE FROM Users WHERE Id = @UserId";
                 cmd = new SqlCommand(query);
                 cmd.Parameters.AddWithValue("@UserId", userId);
 
@@ -730,13 +740,14 @@ namespace CareerNexus.Services.Admin
             try
             {
                 string query = @"
-                    SELECT TOP 10
-                        A.PersonalityType as CareerName,
-                        COUNT(*) as MatchCount
-                    FROM Assesments A
-                    WHERE A.PersonalityType IS NOT NULL AND A.PersonalityType != ''
-                    GROUP BY A.PersonalityType
-                    ORDER BY MatchCount DESC";
+                                  SELECT 
+                                  A.PersonalityType AS CareerName,
+                                  COUNT(DISTINCT A.UserId) AS MatchCount
+                                 FROM Assesments A
+                                 WHERE A.PersonalityType IS NOT NULL  AND A.UserId IS NOT NULL
+                                   AND A.PersonalityType <> ''
+                                 GROUP BY A.PersonalityType
+                                 ORDER BY MatchCount DESC;";
 
                 SqlCommand cmd = new SqlCommand(query);
                 DataTable dt = DBEngine.GetDataTable(cmd, Databaseoperations.Select, query);
