@@ -3,7 +3,11 @@ using CareerNexus.Common;
 using CareerNexus.Models.Authetication;
 using CareerNexus.Models.RequestModel;
 using CareerNexus.Models.UserModel;
+using CareerNexus.Services.EmailSender;
+using CareerNexus.Services.EmailTemplate;
 using CareerNexus.Services.OtpService;
+using CareerNexus.Services.Setting;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Logging;
@@ -21,11 +25,16 @@ namespace CareerNexus.Services.Authenticate
     public class AuthenticateService : IAuthenticate
     {
         private readonly IOTP _otpservice;
+        private readonly IEmailTemplateService _emailtemplate;
+        private readonly IEmailSenderService _emailSender;
+
         private readonly ILogger<AuthenticateService> __logger;
 
-        public AuthenticateService(IOTP otpservice,ILogger<AuthenticateService>logger)
+        public AuthenticateService(IOTP otpservice,IEmailSenderService emailSender,IEmailTemplateService emailTemplate,ILogger<AuthenticateService>logger)
         {
            __logger = logger;
+            _emailtemplate = emailTemplate;
+            _emailSender = emailSender;
             _otpservice = otpservice;
         }
        
@@ -91,24 +100,42 @@ namespace CareerNexus.Services.Authenticate
                     cmd.Parameters.AddWithValue("@Fullname", user.Fullname);
                     //cmd.Parameters.AddWithValue("@Fullname", user.Fullname);
                     cmd.Parameters.AddWithValue("@PasswordHash", Helper.EncryptString(user.PassswordHash));
-                   
+
 
                     isinserted = DBEngine.ExecuteScalar(cmd, Databaseoperations.Insert, query);
-                   if(isinserted > 0)
+                    if (isinserted > 0)
                     {
                         query = "Insert into UserRoles (UserId,RoleId) values(@UserId,@roleid)";
                         cmd = new SqlCommand();
                         cmd.Parameters.AddWithValue("@UserId", isinserted);
-                        cmd.Parameters.AddWithValue("@roleid", user.RoleId==0?2:user.RoleId);
-                        cmd.CommandText= query;
-                        cmd.CommandType= CommandType.Text;
-                        DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Insert, query);
-  
-                        
-                    }
-                    __logger.LogInformation("User Create Successfully");
-                    return isinserted;
-                }
+                        cmd.Parameters.AddWithValue("@roleid", user.RoleId == 0 ? 2 : user.RoleId);
+                        cmd.CommandText = query;
+                        cmd.CommandType = CommandType.Text;
+                        bool inserted = DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Insert, query);
+                        __logger.LogInformation("User Create Successfully");
+                       
+                        if (inserted)
+                            __logger.LogInformation("going to sending Welcome Email");
+
+                        var emailTemplate = await _emailtemplate.GetEmailTemplateById((long)EmailTemplateEnum.WelcomeEmail);
+                            if (emailTemplate == null)
+                            {
+                                __logger.LogWarning("Welcome email template not found.");
+                                return 0;
+                            }
+
+                            string body = emailTemplate.TemplateBody
+                                           .Replace("{{UserName}}", user.Fullname);
+                            string FromEmail = SettingService.GetSettingsKeyValue(SystemVariables.SenderEmail);
+                            string Subject = emailTemplate.Subject;
+
+
+                            await _emailSender.SendEmailAsync(FromEmail, user.Email, Subject, body);
+                            __logger.LogInformation("Welcome Email Successfully");
+                            return isinserted;
+                        }
+                    
+                }                              
             }
             catch (Exception ex)
             {
