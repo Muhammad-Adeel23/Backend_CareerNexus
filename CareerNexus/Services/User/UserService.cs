@@ -45,6 +45,7 @@ namespace CareerNexus.Services.User
                     _logger.LogInformation($"User not found to be reset.");
                     return false;
                 }
+
                 var emailTemplate = await _emailTemplate.GetEmailTemplateById((long)EmailTemplateEnum.PasswordReset);
                 if (emailTemplate == null)
                 {
@@ -53,14 +54,14 @@ namespace CareerNexus.Services.User
                 }
 
                 string body = emailTemplate.TemplateBody
-                               .Replace("{{Email}}", email)
+                               .Replace("{{FullName}}", email)
                                .Replace("{{Password}}", generatedPassword);
                 string FromEmail = SettingService.GetSettingsKeyValue(SystemVariables.SenderEmail);
                 string Subject = emailTemplate.Subject;
 
                 //Send OTP through Email to the User
               //  await _EmailSender.SendEmailAsync(FromEmail, user.Email, Subject, body);
-                await _emailSender.SendEmailAsync(FromEmail, email, "Password Reset", body);
+                await _emailSender.SendEmailAsync(FromEmail, email, Subject, body);
                 return true;
 
             }

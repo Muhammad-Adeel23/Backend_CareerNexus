@@ -8,7 +8,9 @@ namespace CareerNexus.Common
     public enum EmailTemplateEnum
     {
         [Description("Password Reset Email")]
-        PasswordReset = 100001
+        PasswordReset = 100001,
+        [Description("Welcome Email")]
+        WelcomeEmail = 100002
     }
 
     public enum RoleType
