@@ -3,6 +3,7 @@ using CareerNexus.Models.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using CareerNexus.Services.Feedback;
 
 namespace CareerNexus.Controllers
 {
@@ -12,11 +13,13 @@ namespace CareerNexus.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
+        private readonly IFeedbackService _feedbackService;
         private readonly ILogger<AdminController> _logger;
 
-        public AdminController(IAdminService adminService, ILogger<AdminController> logger)
+        public AdminController(IAdminService adminService,IFeedbackService feedbackService, ILogger<AdminController> logger)
         {
             _adminService = adminService;
+            _feedbackService = feedbackService;
             _logger = logger;
         }
 
@@ -624,6 +627,32 @@ namespace CareerNexus.Controllers
                 });
             }
         }
+        [HttpGet("Feedback")]
+        public async Task<IActionResult> GetFeedback()
+        {
+            try
+            {
+                var list = await _feedbackService.GetAllFeedbackAsync();
+                return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                {
+                    Data = list,
+                    Message = "Feedback retrieved successfully",
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.OK
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting feedback");
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
+                {
+                    Message = "Error retrieving feedback",
+                    IsSuccess = false,
+                    StatusCode = (int)HttpStatusCode.InternalServerError
+                });
+            }
+        }
+
     }
 
     public class UpdateUserStatusRequest

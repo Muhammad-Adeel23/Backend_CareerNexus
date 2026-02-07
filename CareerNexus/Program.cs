@@ -21,6 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
+using CareerNexus.Services.Feedback;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = AppConfiguration.LoadConfiguration();
@@ -44,6 +45,8 @@ builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 builder.Services.AddSingleton<ICareerRecommendationService, CareerRecommendationService>();
 builder.Services.AddSingleton<IPersonalityService, PersonalityService>();
 builder.Services.AddSingleton<IAdminService, AdminService>();
+builder.Services.AddSingleton<IFeedbackService, FeedbackService>();
+
 //builder.Services.AddSingleton<IAuthenticate,AuthenticateService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
