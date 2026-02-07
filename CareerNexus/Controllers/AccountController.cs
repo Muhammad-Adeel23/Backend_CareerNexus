@@ -5,6 +5,7 @@ using CareerNexus.Models.RequestModel;
 using CareerNexus.Models.UserModel;
 using CareerNexus.Services;
 using CareerNexus.Services.Authenticate;
+using CareerNexus.Services.Feedback;
 using CareerNexus.Services.OtpService;
 using CareerNexus.Services.User;
 using Microsoft.AspNetCore.Authentication;
@@ -25,12 +26,14 @@ namespace CareerNexus.Controllers
         private readonly IOTP _otp;
         private readonly IConfiguration _config;
         private readonly IUserService _userservice;
+        private readonly IFeedbackService _feedbackService;
         private readonly ILogger<AccountController> _logger ;
 
-        public AccountController(IAuthenticate authenticationService, IConfiguration config, IOTP otpservice,IUserService userService,ILogger<AccountController> logger
+        public AccountController(IAuthenticate authenticationService,IFeedbackService feedbackService, IConfiguration config, IOTP otpservice,IUserService userService,ILogger<AccountController> logger
             )
         {
            _userservice = userService;
+            _feedbackService = feedbackService;
             _logger = logger;
             _otp = otpservice;
             _authenticationservice = authenticationService;
@@ -159,9 +162,53 @@ namespace CareerNexus.Controllers
                 });
             } 
         }
-    
-    
-    
+        [Authorize]
+        [HttpPost("SubmitFeedback")]
+        [ProducesResponseType(typeof(SuccessResponseModel), 200)]
+        [ProducesResponseType(typeof(ErrorResponseModel), 400)]
+        public async Task<IActionResult> SubmitFeedback([FromBody] FeedbackSubmitRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+            {
+                return BadRequest(new { message = "Message is required." });
+            }
+
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out long userId))
+                {
+                    return Unauthorized(new { message = "User not authenticated." });
+                }
+
+                long feedbackId = await _feedbackService.SubmitFeedbackAsync(userId, request.Message.Trim(), request.FeedbackType ?? "suggestion");
+                if (feedbackId <= 0)
+                {
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "Failed to save feedback." });
+                }
+
+                return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                {
+                    Data = feedbackId,
+                    Message = "Feedback submitted successfully.",
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.OK
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SubmitFeedback failed");
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
+                {
+                    Message = "An error occurred while submitting feedback.",
+                    IsSuccess = false,
+                    StatusCode = (int)HttpStatusCode.InternalServerError
+                });
+            }
+        }
+
+
+
     }
 
 }
