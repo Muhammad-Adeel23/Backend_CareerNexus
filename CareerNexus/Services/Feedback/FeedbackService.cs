@@ -95,5 +95,48 @@ SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
             return await Task.FromResult(list);
         }
 
+        public async Task<List<FeedbackItemModel>> GetFeedbackByUserIdAsync(long userId)
+        {
+            var list = new List<FeedbackItemModel>();
+
+            try
+            {
+                string query = @"
+            SELECT Id, UserName, UserEmail, Message, FeedbackType, SubmittedAt
+            FROM Feedback
+            WHERE UserId = @UserId
+            ORDER BY SubmittedAt DESC";
+
+                var cmd = new SqlCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = CommandType.Text;
+
+                cmd.Parameters.AddWithValue("@UserId", userId);   // ✅ safe
+
+                var dt = DBEngine.GetDataTable(cmd, Databaseoperations.Select, query);
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new FeedbackItemModel
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        Username = row["UserName"]?.ToString() ?? "",
+                        Email = row["UserEmail"]?.ToString() ?? "",
+                        Message = row["Message"]?.ToString() ?? "",
+                        FeedbackType = row["FeedbackType"]?.ToString() ?? "suggestion",
+                        SubmittedAt = row["SubmittedAt"] != DBNull.Value
+                                        ? Convert.ToDateTime(row["SubmittedAt"])
+                                        : DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFeedbackByUserId failed");
+            }
+
+            return await Task.FromResult(list);
+        }
+
     }
 }

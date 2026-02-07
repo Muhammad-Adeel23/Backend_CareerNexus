@@ -11,6 +11,7 @@ using CareerNexus.Services.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -207,7 +208,33 @@ namespace CareerNexus.Controllers
             }
         }
 
+        [HttpGet("GetFeedbackByUserId")]
+        public async Task<IActionResult> GetFeedbackByUser()
+        {
+            try
+            {
+                var userIdClaim = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+                var result = await _feedbackService.GetFeedbackByUserIdAsync(userIdClaim);
 
+
+                return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                {
+                    Data = result,
+                    Message = "Feedback fetched successfully.",
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.OK
+                });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
+                {
+                    Message = $"An error occurred while fetching feedback.",
+                    IsSuccess = false,
+                    StatusCode = (int)HttpStatusCode.InternalServerError
+                });
+            }
+        }
 
     }
 
