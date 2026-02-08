@@ -209,6 +209,8 @@ namespace CareerNexus.Controllers
         }
 
         [HttpGet("GetFeedbackByUserId")]
+        [ProducesResponseType(typeof(SuccessResponseModel), 200)]
+        [ProducesResponseType(typeof(ErrorResponseModel), 400)]
         public async Task<IActionResult> GetFeedbackByUser()
         {
             try
@@ -234,6 +236,43 @@ namespace CareerNexus.Controllers
                     StatusCode = (int)HttpStatusCode.InternalServerError
                 });
             }
+        }
+        
+        [HttpDelete("DeleteFeedbackById")]
+        [ProducesResponseType(typeof(SuccessResponseModel), 200)]
+        [ProducesResponseType(typeof(ErrorResponseModel), 400)]
+
+        public async Task<IActionResult> DeleteFeedback(long id)
+        {
+            long? userId = null;
+
+            var claim = User.FindFirst(ClaimTypes.PrimarySid)?.Value;
+            if (!string.IsNullOrEmpty(claim))
+                userId = Convert.ToInt64(claim);
+
+            if (userId == null)
+                return Unauthorized();
+
+            //bool isAdmin = User.IsInRole("Admin");
+
+            bool deleted = await _feedbackService.DeleteFeedbackAsync(id, userId.Value);
+
+            if (!deleted)
+                return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+                {
+                    Data = deleted,
+                    Message = "Invalid Id OR ID not found",
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.OK
+                });
+
+            return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
+            {
+                Data = deleted,
+                Message = "Feedback delete successfully.",
+                IsSuccess = true,
+                StatusCode = (int)HttpStatusCode.OK
+            });
         }
 
     }

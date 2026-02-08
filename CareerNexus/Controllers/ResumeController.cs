@@ -59,27 +59,56 @@ namespace CareerNexus.Controllers
                     userId = parsed;
 
                 if (userId == null && request.TempSessionId == null)
-                    return BadRequest("Temp session is required for guest users.");
-
+                    
+                    return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+                    {
+                        Message = "Temp session is required for guest users.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    });
 
                 if (request.ResumeFile == null || request.ResumeFile.Length == 0)
-                    return BadRequest("No resume uploaded.");
+                    return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+                    {
+                        Message = "No Resume Uploaded.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    });
 
                 var allowed = new[] { ".pdf", ".docx", ".doc" };
                 var ext = Path.GetExtension(request.ResumeFile.FileName).ToLowerInvariant();
-                if (!allowed.Contains(ext)) return BadRequest("Unsupported file type.");
+                if (!allowed.Contains(ext))
+                    return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+                    {
+                        Message = "UnSupported file type.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    });
                 if (request.ResumeFile.Length > 5 * 1024 * 1024) // 5MB
-                    return BadRequest("File too large.");
+                    return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+                    {
+                        Message = "File too large.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    });
 
                 // store file (returns stored path or url)
                 var storedFilePath = await _storageService.SaveFileAsync(request.ResumeFile, userId);
 
                 // extract text
                 var text = await _parser.ExtractTextFromFileAsync(request.ResumeFile);
-                if (string.IsNullOrWhiteSpace(text))
-                    return BadRequest("The uploaded resume appears to be empty or unreadable.");
+                if (string.IsNullOrWhiteSpace(text) || text.Trim().Length < 50)
+                {
+                    //return BadRequest("Resume is blank or does not contain readable text. Please upload a valid resume.");
+                    return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+                    {
+                        Message = "Resume is blank or does not contain readable text. Please upload a valid resume.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    });
+                }
 
-                
+
                 // analyze via AI
                 var analysis = await _analyzer.AnalyzeResumeAsync(text);
                 if (analysis.MissingSkills.Any() == true)
@@ -94,19 +123,32 @@ namespace CareerNexus.Controllers
 
                 // save to DB
                 var saved = await SaveResumeToDbAsync(userId, request.TempSessionId, storedFilePath, analysis);
-                if (!saved) return StatusCode(500, "Failed to save resume.");
+                if (!saved)
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
+                    {
+                        Message = "Failed to save resume.",
+                        IsSuccess = true,
+                        StatusCode = (int)HttpStatusCode.InternalServerError
+                    });
 
                 return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
                 {
                     Data = analysis,
                     Message = "Resume analyze Successfully",
-                    IsSuccess = true
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.OK
+
                 });
             }
             catch (Exception ex)
             {
                 // log ex
-                return StatusCode(500, "An error occurred while processing resume.");
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
+                {
+                    Message = "An error occured while processing resume.",
+                    IsSuccess = true,
+                    StatusCode = (int)HttpStatusCode.InternalServerError
+                });
             }
         }
 
