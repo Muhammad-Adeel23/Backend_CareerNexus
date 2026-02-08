@@ -44,6 +44,7 @@ namespace CareerNexus.Services.Admin
         public string? PersonalityType { get; set; }
         public int Score { get; set; }
         public string? CompletedDate { get; set; }
+        public int AttemptCount { get; set; }
     }
 
     public class AssessmentDetailModel
@@ -67,6 +68,7 @@ namespace CareerNexus.Services.Admin
         public string Status { get; set; } = "Pending";
         public string? UploadDate { get; set; }
         public List<string> Skills { get; set; } = new();
+        public int AttemptCount { get; set; }
     }
 
     public class CareerModel
@@ -281,15 +283,35 @@ DELETE FROM Users WHERE Id = @UserId";
             try
             {
                 string query = @"
-                    SELECT 
-                        A.Id,
-                        ISNULL(U.FullName, 'Guest') as UserName,
-                        A.PersonalityType,
-                        A.TotalScore as Score,
-                        CONVERT(varchar, A.CompletedAt, 23) as CompletedDate
-                    FROM Assesments A
-                    LEFT JOIN Users U ON A.UserId = U.Id
-                    ORDER BY A.CompletedAt DESC";
+                                WITH AssessmentData AS
+                             (
+                                 SELECT 
+                                     A.Id,
+                                     A.UserId,
+                                     U.FullName as UserName,
+                                     A.PersonalityType,
+                                     A.TotalScore as Score,
+                                     CONVERT(varchar, A.CompletedAt, 23) as CompletedDate,
+                                     A.CompletedAt,
+                             
+                                     COUNT(*) OVER (PARTITION BY A.UserId) as AttemptCount,   -- ✅ correct count
+                             
+                                     ROW_NUMBER() OVER (PARTITION BY A.UserId ORDER BY A.CompletedAt DESC) as rn
+                             
+                                 FROM Assesments A
+                                 LEFT JOIN Users U ON A.UserId = U.Id Where A.UserId is not  null
+                             )
+                             
+                             SELECT 
+                                 Id,
+                                 UserName,
+                                 PersonalityType,
+                                 Score,
+                                 CompletedDate,
+                                 AttemptCount
+                             FROM AssessmentData
+                             WHERE rn = 1
+                             ORDER BY CompletedAt DESC";
 
                 SqlCommand cmd = new SqlCommand(query);
                 DataTable dt = DBEngine.GetDataTable(cmd, Databaseoperations.Select, query);
@@ -303,7 +325,8 @@ DELETE FROM Users WHERE Id = @UserId";
                         UserName = row["UserName"]?.ToString(),
                         PersonalityType = row["PersonalityType"]?.ToString(),
                         Score = row["Score"] != DBNull.Value ? Convert.ToInt32(row["Score"]) : 0,
-                        CompletedDate = row["CompletedDate"]?.ToString()
+                        CompletedDate = row["CompletedDate"]?.ToString(),
+                        AttemptCount=Convert.ToInt32(row["AttemptCount"])
                     });
                 }
 
@@ -366,17 +389,38 @@ DELETE FROM Users WHERE Id = @UserId";
             try
             {
                 string query = @"
-                    SELECT 
-                        R.Id,
-                        ISNULL(U.FullName, 'Guest') as UserName,
-                        SUBSTRING(R.FileURL, CHARINDEX('\', REVERSE(R.FileURL)) + 1, LEN(R.FileURL)) as FileName,
-                        R.FileURL,
-                        CASE WHEN R.Analysis IS NOT NULL AND R.Analysis != '' THEN 'Analyzed' ELSE 'Pending' END as Status,
-                        CONVERT(varchar, R.UploadedAt, 23) as UploadDate,
-                        R.ParsedSkills
-                    FROM Resumes R
-                    LEFT JOIN Users U ON R.UserId = U.Id
-                    ORDER BY R.UploadedAt DESC";
+                     WITH ResumeData AS (
+                            SELECT 
+                                R.Id,
+                                R.UserId,
+                                ISNULL(U.FullName, 'Guest') as UserName,
+                                SUBSTRING(R.FileURL, CHARINDEX('\', REVERSE(R.FileURL)) + 1, LEN(R.FileURL)) as FileName,
+                                R.FileURL,
+                                CASE 
+                                    WHEN R.Analysis IS NOT NULL AND R.Analysis != '' 
+                                    THEN 'Analyzed' 
+                                    ELSE 'Pending' 
+                                END as Status,
+                                CONVERT(varchar, R.UploadedAt, 23) as UploadDate,
+                                R.ParsedSkills,
+                                R.UploadedAt,
+                            
+                                COUNT(*) OVER (PARTITION BY R.UserId) as AttemptCount,  
+                            
+                                ROW_NUMBER() OVER (PARTITION BY R.UserId ORDER BY R.UploadedAt DESC) as rn  
+                            
+                            FROM Resumes R
+                            
+                            LEFT JOIN Users U ON R.UserId = U.Id
+                            Where R.UserId is not null
+                             )
+                             
+                             SELECT *
+                             FROM ResumeData
+                             WHERE rn = 1   
+                             ORDER BY UploadedAt DESC
+                             
+                             ";
 
                 SqlCommand cmd = new SqlCommand(query);
                 DataTable dt = DBEngine.GetDataTable(cmd, Databaseoperations.Select, query);
@@ -399,7 +443,8 @@ DELETE FROM Users WHERE Id = @UserId";
                         FileURL = row["FileURL"]?.ToString(),
                         Status = row["Status"]?.ToString() ?? "Pending",
                         UploadDate = row["UploadDate"]?.ToString(),
-                        Skills = skills
+                        Skills = skills,
+                        AttemptCount= Convert.ToInt32(row["AttemptCount"])
                     });
                 }
 
