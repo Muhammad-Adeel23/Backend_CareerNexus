@@ -68,7 +68,7 @@ SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
             var list = new List<FeedbackItemModel>();
             try
             {
-                string query = "SELECT Id, UserName, UserEmail, Message, FeedbackType, SubmittedAt FROM Feedback ORDER BY SubmittedAt DESC";
+                string query = "SELECT Id, UserName, UserEmail, Message, FeedbackType, SubmittedAt FROM Feedback where  IsDelete = 0  ORDER BY SubmittedAt DESC";
                 var cmd = new SqlCommand();
                 cmd.CommandText = query;
                 cmd.CommandType = CommandType.Text;
@@ -104,7 +104,7 @@ SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
                 string query = @"
             SELECT Id, UserName, UserEmail, Message, FeedbackType, SubmittedAt
             FROM Feedback
-            WHERE UserId = @UserId
+            WHERE UserId = @UserId AND IsDelete = 0
             ORDER BY SubmittedAt DESC";
 
                 var cmd = new SqlCommand();
@@ -136,6 +136,34 @@ SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
             }
 
             return await Task.FromResult(list);
+        }
+        public async Task<bool> DeleteFeedbackAsync(long feedbackId, long userId)
+        {
+            try
+            {
+                string query = @"
+                               UPDATE Feedback
+                               SET IsDelete = 1
+                               WHERE Id = @FeedbackId
+                               AND  UserId = @UserId";
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = CommandType.Text;
+
+                cmd.Parameters.AddWithValue("@FeedbackId", feedbackId);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                //cmd.Parameters.AddWithValue("@IsAdmin", isAdmin ? 1 : 0);
+
+                bool result = DBEngine.ExecuteNonQuery(cmd, Databaseoperations.Update, query);
+
+                return await Task.FromResult(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeleteFeedback failed for FeedbackId {FeedbackId}", feedbackId);
+                return false;
+            }
         }
 
     }
