@@ -226,7 +226,7 @@ namespace CareerNexus.Controllers
                 });
             }
             catch(Exception ex)
-            {
+            { 
                 return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponseModel
                 {
                     Message = $"An error occurred while fetching feedback.",
