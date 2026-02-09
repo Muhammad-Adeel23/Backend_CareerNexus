@@ -61,6 +61,7 @@ namespace CareerNexus.Services.OtpService
                 Email = user.Email,
                 FullName = user.Fullname,
                 RoleId= user.RoleId,
+                IsActive=user.IsActive,
                 RoleName=user.RoleName,
                 RoleType=user.Roletype
                 
