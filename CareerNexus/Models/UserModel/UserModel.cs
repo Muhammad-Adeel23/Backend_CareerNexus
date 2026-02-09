@@ -10,6 +10,7 @@
         public string RoleName { get; set; }
         public long Roletype { get; set; }
         public string PassswordHash { get; set; }
-       
+        public bool IsActive { get; set; }
+
     }
 }

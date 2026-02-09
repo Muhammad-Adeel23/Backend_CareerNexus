@@ -76,13 +76,13 @@ namespace CareerNexus.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Authenticate(AuthenticationRequestModel request)
         {
-            var result = await _authenticationservice.Authenticate(request);
+            var (message, result) = await _authenticationservice.Authenticate(request);
             if (result != null)
             {
                 return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
                 {
                     Data = result,
-                    Message="Login Successfully",
+                    Message=message,
                     IsSuccess=true
                 });
             }
@@ -90,7 +90,7 @@ namespace CareerNexus.Controllers
             return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
             {
                 
-                Message = "Login failed",
+                Message = message,
                 IsSuccess = false
             });
         }

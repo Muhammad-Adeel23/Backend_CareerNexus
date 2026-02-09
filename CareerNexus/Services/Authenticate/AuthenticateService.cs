@@ -38,12 +38,13 @@ namespace CareerNexus.Services.Authenticate
             _otpservice = otpservice;
         }
        
-        public async Task<ClaimResponseModel> Authenticate(AuthenticationRequestModel request)
+        public async Task<(string message,ClaimResponseModel)> Authenticate(AuthenticationRequestModel request)
         {
             ClaimResponseModel model = new ClaimResponseModel();
+            string message;
             try
             {
-                string query = @"select U.*,R.RoleName,R.RoleType,UR.RoleId,R.Id  from users U
+                string query =@" select U.*,R.RoleName,R.RoleType,UR.RoleId,R.Id  from users U
                                  INNER JOIN UserRoles UR  ON UR.UserId = U.Id
                                  Left JOIN Roles R ON UR.RoleId = R.Id
                                  where Email = @Email and PasswordHash=@Password";
@@ -57,16 +58,26 @@ namespace CareerNexus.Services.Authenticate
                 List<UserModel> users =dt.ToModelList<UserModel>();
                 if (users == null || users.Count == 0)
                 {
-                    return null;
+                    message= "Invalid email or password. Please try again.";
+                    return (message,model);
                 }
-
+               
                 UserModel user = users.First(); // Get the first matched user
-                return await _otpservice.GenerateToken(user);
+
+                if (!user.IsActive)
+                {
+                    message = "Your account is currently inactive. Please contact the administrator.";
+                    return (message, model);
+                }
+                var result= await _otpservice.GenerateToken(user);
+
+                message="Authentication successful.";
+                return (message, result);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Authenticate Error: {ex.Message}");
-                return model;
+                return ("",model);
             }
         }
         public async Task<long> Register(UserRequestModel user)

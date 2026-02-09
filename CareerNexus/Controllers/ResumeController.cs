@@ -36,7 +36,7 @@ namespace CareerNexus.Controllers
             IResumeParser parser,
             IResumeAnalyzer analyzer,
             ICareerRecommendationService careerService
-        /* plus logger, config, etc. */
+        
         )
         {
             _storageService = storageService;
@@ -224,5 +224,17 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
                 analysis = analysisObj
             });
         }
+        //[HttpGet("download-resume/{fileName}")]
+        //public IActionResult DownloadResume(string fileName)
+        //{
+        //    var fullPath = Path.Combine(_basePath, fileName);
+
+        //    if (!System.IO.File.Exists(fullPath))
+        //        return NotFound("File not found");
+
+        //    var bytes = System.IO.File.ReadAllBytes(fullPath);
+
+        //    return File(bytes, "application/pdf", Path.GetFileName(fullPath));
+        //}
     }
 }
