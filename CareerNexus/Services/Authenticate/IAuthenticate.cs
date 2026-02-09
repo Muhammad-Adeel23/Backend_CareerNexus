@@ -6,7 +6,7 @@ namespace CareerNexus.Services.Authenticate
 {
     public interface IAuthenticate
     {
-        Task<ClaimResponseModel> Authenticate(AuthenticationRequestModel request);
+        Task<(string message, ClaimResponseModel)> Authenticate(AuthenticationRequestModel request);
         Task<long> Register(UserRequestModel user);
        // public string GenerateToken(string userId, string userName, IConfiguration config);
     }
