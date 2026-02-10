@@ -224,17 +224,37 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
                 analysis = analysisObj
             });
         }
-        //[HttpGet("download-resume/{fileName}")]
-        //public IActionResult DownloadResume(string fileName)
-        //{
-        //    var fullPath = Path.Combine(_basePath, fileName);
+        [HttpGet("download-resume")]
+        public IActionResult DownloadResume([FromQuery] string fileUrl)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(fileUrl))
+                    return BadRequest("Invalid file");
 
-        //    if (!System.IO.File.Exists(fullPath))
-        //        return NotFound("File not found");
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", fileUrl);
 
-        //    var bytes = System.IO.File.ReadAllBytes(fullPath);
+                if (!System.IO.File.Exists(fullPath))
+                    return NotFound("File not found");
 
-        //    return File(bytes, "application/pdf", Path.GetFileName(fullPath));
-        //}
+                var bytes = System.IO.File.ReadAllBytes(fullPath);
+
+                var contentType = "application/octet-stream";
+
+                var ext = Path.GetExtension(fullPath).ToLower();
+
+                if (ext == ".pdf") contentType = "application/pdf";
+                else if (ext == ".docx")
+                    contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                else if (ext == ".doc")
+                    contentType = "application/msword";
+
+                return File(bytes, contentType, Path.GetFileName(fullPath));
+            }
+            catch
+            {
+                return StatusCode(500, "Error downloading file");
+            }
+        }
     }
 }
