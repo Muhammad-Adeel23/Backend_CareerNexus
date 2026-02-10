@@ -39,9 +39,24 @@
                 await file.CopyToAsync(fs);
             }
 
-            // 👉 return RELATIVE path (important)
+
             return Path.Combine("resumes", userId.ToString(), safeName).Replace("\\", "/");
         }
+        //public async Task<string> SaveFileAsync(IFormFile file, long? userId)
+        //{
+        //    var userFolder = Path.Combine(_basePath, userId.ToString());
+        //    Directory.CreateDirectory(userFolder);
+        //    var safeName = Path.GetFileName(file.FileName);
+        //    var filePath = Path.Combine(userFolder, safeName);
+
+        //    using (var fs = new FileStream(filePath, FileMode.Create))
+        //    {
+        //        await file.CopyToAsync(fs);
+        //    }
+
+
+        //    return safeName;
+        //}
     }
 
 }

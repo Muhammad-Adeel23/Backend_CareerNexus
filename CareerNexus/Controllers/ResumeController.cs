@@ -224,37 +224,22 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
                 analysis = analysisObj
             });
         }
-        [HttpGet("download-resume")]
-        public IActionResult DownloadResume([FromQuery] string fileUrl)
+        [Authorize]
+        [HttpGet("download-latest")]
+        public async Task<IActionResult> DownloadLatest()
         {
-            try
-            {
-                if (string.IsNullOrEmpty(fileUrl))
-                    return BadRequest("Invalid file");
+            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
 
-                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", fileUrl);
+            var resume = await _analyzer.GetLatestResume(userId);
 
-                if (!System.IO.File.Exists(fullPath))
-                    return NotFound("File not found");
+            if (resume == null)
+                return NotFound();
 
-                var bytes = System.IO.File.ReadAllBytes(fullPath);
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", resume.FileURL);
 
-                var contentType = "application/octet-stream";
+            var bytes = System.IO.File.ReadAllBytes(fullPath);
 
-                var ext = Path.GetExtension(fullPath).ToLower();
-
-                if (ext == ".pdf") contentType = "application/pdf";
-                else if (ext == ".docx")
-                    contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-                else if (ext == ".doc")
-                    contentType = "application/msword";
-
-                return File(bytes, contentType, Path.GetFileName(fullPath));
-            }
-            catch
-            {
-                return StatusCode(500, "Error downloading file");
-            }
+            return File(bytes, "application/pdf", Path.GetFileName(fullPath));
         }
     }
 }

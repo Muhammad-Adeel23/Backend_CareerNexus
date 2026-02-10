@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="canonical" href="https://careernexus-guide.netlify.app/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Career Nexus – AI-Powered Smart Career Counselor | Personality Test & Resume Analysis</title>
+    <meta name="description" content="Career Nexus helps you discover the right career with AI-powered personality assessment, resume analysis, and personalized career recommendations. Take the free personality test and upload your resume for career guidance." />
+    <meta name="keywords" content="career counselor, career guidance, personality test, resume analysis, AI career advice, job recommendations, career assessment, skills development" />
+    <meta name="author" content="Career Nexus" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#7c3aed" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://careernexus-guide.netlify.app/" />
+    <meta property="og:title" content="Career Nexus – AI-Powered Smart Career Counselor" />
+    <meta property="og:description" content="Discover your ideal career with AI-powered personality assessment, resume analysis, and personalized career recommendations. Free personality test and resume upload." />
+    <meta property="og:image" content="https://careernexus-guide.netlify.app/header-icon.png" />
+    <meta property="og:site_name" content="Career Nexus" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://careernexus-guide.netlify.app/" />
+    <meta name="twitter:title" content="Career Nexus – AI-Powered Smart Career Counselor" />
+    <meta name="twitter:description" content="Discover your ideal career with AI-powered personality assessment, resume analysis, and personalized career recommendations." />
+    <meta name="twitter:image" content="https://careernexus-guide.netlify.app/header-icon.png" />
+
+    <meta name="google-site-verification" content="Rn9cTulCapTNHMEneHId1xxFVBxrREvNn7cPehzp0OE" />
+    <script type="module" crossorigin src="/assets/index-C8e9_wwe.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DCbjiJ3P.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

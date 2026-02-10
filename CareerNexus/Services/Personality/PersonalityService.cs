@@ -88,15 +88,30 @@ namespace CareerNexus.Services.Personality
             var axisRight = new Dictionary<string, int> { { "EI", 0 }, { "SN", 0 }, { "TF", 0 }, { "JP", 0 } };
 
             // assume answers in 1..5 scale. Normalize if different.
+            //for (int i = 0; i < Questions.Count; i++)
+            //{
+            //    var q = Questions[i];
+            //    int ans = Math.Clamp(request.Answers[i], 1, 5); // ensure within 1..5
+            //    // We will add the raw score to whichever side Polarity indicates.
+            //    if (q.Polarity == 'L') axisLeft[q.Axis] += ans;
+            //    else axisRight[q.Axis] += ans;
+            //}
             for (int i = 0; i < Questions.Count; i++)
             {
                 var q = Questions[i];
-                int ans = Math.Clamp(request.Answers[i], 1, 5); // ensure within 1..5
-                // We will add the raw score to whichever side Polarity indicates.
-                if (q.Polarity == 'L') axisLeft[q.Axis] += ans;
-                else axisRight[q.Axis] += ans;
-            }
+                int ans = Math.Clamp(request.Answers[i], 1, 5);
 
+                if (q.Polarity == 'L')
+                {
+                    // L = E / S / T / J → frontend already sends high score
+                    axisLeft[q.Axis] += ans;
+                }
+                else
+                {
+                    // R = I / N / F / P → frontend sends LOW score, so invert
+                    axisRight[q.Axis] += (6 - ans);
+                }
+            }
             // Derive letter for each axis
             string letterEI = axisLeft["EI"] >= axisRight["EI"] ? "E" : "I";
             string letterSN = axisLeft["SN"] >= axisRight["SN"] ? "S" : "N";
