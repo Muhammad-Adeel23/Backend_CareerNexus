@@ -62,6 +62,7 @@ namespace CareerNexus.Services.Admin
     public class ResumeListModel
     {
         public int Id { get; set; }
+        public long UserId { get; set; }
         public string? UserName { get; set; }
         public string? FileName { get; set; }
         public string? FileURL { get; set; }
@@ -438,6 +439,7 @@ DELETE FROM Users WHERE Id = @UserId";
                     resumes.Add(new ResumeListModel
                     {
                         Id = Convert.ToInt32(row["Id"]),
+                        UserId = Convert.ToInt64(row["UserId"]),
                         UserName = row["UserName"]?.ToString(),
                         FileName = row["FileName"]?.ToString(),
                         FileURL = row["FileURL"]?.ToString(),

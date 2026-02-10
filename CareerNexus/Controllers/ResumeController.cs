@@ -75,7 +75,7 @@ namespace CareerNexus.Controllers
                         StatusCode = (int)HttpStatusCode.BadRequest
                     });
 
-                var allowed = new[] { ".pdf", ".docx", ".doc" };
+                var allowed = new[] { ".pdf"};
                 var ext = Path.GetExtension(request.ResumeFile.FileName).ToLowerInvariant();
                 if (!allowed.Contains(ext))
                     return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
@@ -226,11 +226,18 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
         }
         [Authorize]
         [HttpGet("download-latest")]
-        public async Task<IActionResult> DownloadLatest()
+        public async Task<IActionResult> DownloadLatest(long UserId)
         {
-            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
-
-            var resume = await _analyzer.GetLatestResume(userId);
+            long external;
+            if (UserId != 0 && UserId > 0)
+            {
+                 external = UserId;
+            }
+            else
+            {
+                external = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            }
+            var resume = await _analyzer.GetLatestResume(external);
 
             if (resume == null)
                 return NotFound();
