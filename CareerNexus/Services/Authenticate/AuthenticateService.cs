@@ -38,7 +38,7 @@ namespace CareerNexus.Services.Authenticate
             _otpservice = otpservice;
         }
        
-        public async Task<(string message,ClaimResponseModel)> Authenticate(AuthenticationRequestModel request)
+        public async Task<ClaimResponseModel> Authenticate(AuthenticationRequestModel request)
         {
             ClaimResponseModel model = new ClaimResponseModel();
             string message;
@@ -58,26 +58,31 @@ namespace CareerNexus.Services.Authenticate
                 List<UserModel> users =dt.ToModelList<UserModel>();
                 if (users == null || users.Count == 0)
                 {
-                    message= "Invalid email or password. Please try again.";
-                    return (message,model);
+                    model.Message= "Invalid email or password. Please try again.";
+                    model.IsSuccess = false;
+                    return (model);
                 }
                
                 UserModel user = users.First(); // Get the first matched user
 
                 if (!user.IsActive)
                 {
-                    message = "Your account is currently inactive. Please contact the administrator.";
-                    return (message, model);
+                    model.Message = "Your account is currently inactive. Please contact the administrator.";
+                    model.IsSuccess= false;
+                    return (model);
                 }
-                var result= await _otpservice.GenerateToken(user);
+                model.Message = "Authentication Successfully";
+                model.IsSuccess = true;
+                 return await _otpservice.GenerateToken(user);
 
-                message="Authentication successful.";
-                return (message, result);
+                //model.Message="Authentication successful.";
+                //model.IsSuccess = true;
+                //return (model);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Authenticate Error: {ex.Message}");
-                return ("",model);
+                return (model);
             }
         }
         public async Task<long> Register(UserRequestModel user)
