@@ -224,17 +224,22 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
                 analysis = analysisObj
             });
         }
-        //[HttpGet("download-resume/{fileName}")]
-        //public IActionResult DownloadResume(string fileName)
-        //{
-        //    var fullPath = Path.Combine(_basePath, fileName);
+        [Authorize]
+        [HttpGet("download-latest")]
+        public async Task<IActionResult> DownloadLatest()
+        {
+            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
 
-        //    if (!System.IO.File.Exists(fullPath))
-        //        return NotFound("File not found");
+            var resume = await _analyzer.GetLatestResume(userId);
 
-        //    var bytes = System.IO.File.ReadAllBytes(fullPath);
+            if (resume == null)
+                return NotFound();
 
-        //    return File(bytes, "application/pdf", Path.GetFileName(fullPath));
-        //}
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", resume.FileURL);
+
+            var bytes = System.IO.File.ReadAllBytes(fullPath);
+
+            return File(bytes, "application/pdf", Path.GetFileName(fullPath));
+        }
     }
 }
