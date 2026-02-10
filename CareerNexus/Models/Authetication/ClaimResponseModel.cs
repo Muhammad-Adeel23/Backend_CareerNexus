@@ -8,7 +8,10 @@
         public long RoleId { get; set; }
         public long RoleType { get; set; }
         public bool IsActive { get; set; }
+        
+        public string Message { get; set; }
 
+        public bool IsSuccess { get; set; }
         public string? Email { get; set; }
         public bool IsTwoFactorEnabled { get; set; }
 

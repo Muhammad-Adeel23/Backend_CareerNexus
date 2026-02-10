@@ -76,22 +76,24 @@ namespace CareerNexus.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Authenticate(AuthenticationRequestModel request)
         {
-            var (message, result) = await _authenticationservice.Authenticate(request);
-            if (result != null)
-            {
+            var result = await _authenticationservice.Authenticate(request);
+            {            if (result != null && result.IsSuccess==true)
+
                 return StatusCode((int)HttpStatusCode.OK, new SuccessResponseModel
                 {
                     Data = result,
-                    Message=message,
+                    Message=result.Message,
                     IsSuccess=true
                 });
             }
 
-            return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
+            return StatusCode((int)HttpStatusCode.Unauthorized, new SuccessResponseModel
             {
-                
-                Message = message,
-                IsSuccess = false
+
+                Data =null,
+                Message = result.Message,
+                IsSuccess = false,
+                StatusCode=(int)HttpStatusCode.Unauthorized
             });
         }
         [AllowAnonymous]

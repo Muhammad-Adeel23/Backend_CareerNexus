@@ -63,8 +63,10 @@ namespace CareerNexus.Services.OtpService
                 RoleId= user.RoleId,
                 IsActive=user.IsActive,
                 RoleName=user.RoleName,
-                RoleType=user.Roletype
-                
+                RoleType=user.Roletype,
+                IsSuccess=true,
+                Message = "User authenticated successfully. No MFA enabled."
+
                 //IsTwoFactorEnabled = user.IsTwoFactorEnabled,
                 //ProfilePictureURL = user.ProfilePictureURL, // if null, it's okay
                 //RoleName = user.RoleName
