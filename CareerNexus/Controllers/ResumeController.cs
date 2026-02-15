@@ -29,14 +29,16 @@ namespace CareerNexus.Controllers
         private readonly IResumeParser _parser;
         private readonly IResumeAnalyzer _analyzer;
         private readonly ICareerRecommendationService _careerService;
+        private readonly IWebHostEnvironment _env;
 
         public ResumeController(
             IStorageService storageService,
             IArtificialIntelligence aiservce,
             IResumeParser parser,
             IResumeAnalyzer analyzer,
-            ICareerRecommendationService careerService
-        
+            ICareerRecommendationService careerService,
+            IWebHostEnvironment env
+
         )
         {
             _storageService = storageService;
@@ -44,6 +46,7 @@ namespace CareerNexus.Controllers
             _aiservce = aiservce;
             _analyzer = analyzer;
             _careerService = careerService;
+            _env = env; 
         }
         [AllowAnonymous]
         [HttpPost("UploadResume")]
@@ -75,7 +78,7 @@ namespace CareerNexus.Controllers
                         StatusCode = (int)HttpStatusCode.BadRequest
                     });
 
-                var allowed = new[] { ".pdf", ".docx", ".doc" };
+                var allowed = new[] { ".pdf"};
                 var ext = Path.GetExtension(request.ResumeFile.FileName).ToLowerInvariant();
                 if (!allowed.Contains(ext))
                     return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponseModel
@@ -226,16 +229,23 @@ VALUES (@UserId,@TempSessionId, @FileURL, @ParsedSkills, @Analysis, GETDATE());"
         }
         [Authorize]
         [HttpGet("download-latest")]
-        public async Task<IActionResult> DownloadLatest()
+        public async Task<IActionResult> DownloadLatest(long UserId)
         {
-            var userId = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
-
-            var resume = await _analyzer.GetLatestResume(userId);
+            long external;
+            if (UserId != 0 && UserId > 0)
+            {
+                 external = UserId;
+            }
+            else
+            {
+                external = Convert.ToInt64(User.FindFirst(ClaimTypes.PrimarySid)?.Value);
+            }
+            var resume = await _analyzer.GetLatestResume(external);
 
             if (resume == null)
                 return NotFound();
-
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", resume.FileURL);
+            var fullPath = Path.Combine(_env.WebRootPath, resume.FileURL);
+            //var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", resume.FileURL);
 
             var bytes = System.IO.File.ReadAllBytes(fullPath);
 
